@@ -55,7 +55,7 @@ class Server {
         std::string getIp(void) const;
 
         void run(void);
-        void checkPassword(Client& client, std::string buffer);
+        bool checkCommand(Client& client, std::string buffer);
 };
 
 int parsing(const std::string& str);

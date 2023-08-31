@@ -153,14 +153,15 @@ void Server::handleClient(int clientSocket, Client& client) {
 
     if (bytesRead > 0) {
         // Print the received message
-        this->checkPassword(client, buffer);
-        if (client.getPassWord() == this->password) {
-            std::cout << "Received message: " << buffer << std::endl;
+        if (!this->checkCommand(client, buffer)) {
+            if (client.getPassWord() == this->password) {
+                std::cout << "Received message: " << buffer << std::endl;
 
-            // Send the received message to all other clients
-            for (size_t i = 0; i < this->clients.size(); ++i) {
-                if (this->clients[i].clientSocket != clientSocket) {
-                    send(this->clients[i].clientSocket, buffer, bytesRead, 0);
+                // Send the received message to all other clients
+                for (size_t i = 0; i < this->clients.size(); ++i) {
+                    if (this->clients[i].clientSocket != clientSocket) {
+                        send(this->clients[i].clientSocket, buffer, bytesRead, 0);
+                    }
                 }
             }
         }
@@ -177,9 +178,9 @@ void Server::handleClient(int clientSocket, Client& client) {
     }
 }
 
-void Server::checkPassword(Client& client, std::string buffer) {
+bool Server::checkCommand(Client& client, std::string buffer) {
     std::string command = "";
-    std::string password = "";
+    std::string argument = "";
     size_t i = 0;
     for (; i < buffer.length(); i++)
         if (!std::isspace(buffer[i])) break;
@@ -191,9 +192,11 @@ void Server::checkPassword(Client& client, std::string buffer) {
         if (!std::isspace(buffer[i])) break;
     if (tolower(command) == "pass") {
         for (; i < buffer.length(); i++)
-            if (buffer[i] != '\n') password += buffer[i];
-        client.setPassWord(password);
-    }
+            if (buffer[i] != '\n') argument += buffer[i];
+        client.setPassWord(argument);
+        return true;
+    } //else if JOIN...
+    else return false;
 }
 
 void Server::disconnect() {
