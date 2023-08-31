@@ -192,6 +192,9 @@ bool Server::checkCommand(Client& client, std::string buffer) {
     } else if (client.logged && tolower(arguments[0]) == "nick") {
         checkNickName(client, arguments);
         return true;
+    } else if (client.logged && tolower(arguments[0]) == "user") {
+        checkUserName(client, arguments);
+        return true;
     }
     else return false;
 }
