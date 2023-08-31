@@ -48,7 +48,7 @@ int Client::getClientSocket(void) const {return this->clientSocket;}
 
 std::string Client::getPassWord(void) const {return this->password;}
 
-std::string Client::getPrefixClient(void) {
+std::string Client::getPrefixClient(void) const {
     return this->getNickName() + "!" + this->getUserName() + "@" + this->getHostName() + " ";
 }
 

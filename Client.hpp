@@ -56,7 +56,7 @@ class Client {
         std::string getRealName(void) const;
         int getClientSocket(void) const;
         std::string getPassWord(void) const;
-        std::string getPrefixClient(void);
+        std::string getPrefixClient(void) const;
 
         void ClientToClientPrefix(std::string message);
         void ServerToClientPrefix(std::string message);
