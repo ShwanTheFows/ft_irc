@@ -1,5 +1,15 @@
 #include "Server.hpp"
 
+std::vector<std::string> splitString(const std::string& str) {
+    std::vector<std::string> tokens;
+    std::istringstream inputStringStream(str);
+    std::string token;
+    while (inputStringStream >> token) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 std::string tolower(const std::string& input) {
     std::string result = input;
     for (size_t i = 0; i < result.length(); ++i) {
@@ -30,8 +40,8 @@ int parsing(const std::string& str) {
 
     port = std::atoi(str.c_str());
 
-    if (port < 1 || port > 65535) {
-        std::cerr << "The port number should be between 1-65,535!" << std::endl;
+    if (port < 1024 || port > 65535) {
+        std::cerr << "Invalid port number!" << std::endl;
         exit(1);
     }
 
@@ -92,7 +102,7 @@ void Server::run() {
             }
 
             std::cout << "Accepted connection." << std::endl;
-            this->clients.push_back(Client(clientSocket));
+            this->clients[clientSocket] = Client(clientSocket);
 
             fds.resize(this->clients.size() + 1);
             fds[this->clients.size()].fd = clientSocket;
@@ -101,7 +111,7 @@ void Server::run() {
 
         for (size_t i = 1; i < fds.size(); ++i) {
             if (fds[i].revents & POLLIN) {
-                handleClient(fds[i].fd, this->clients[i - 1]);
+                handleClient(fds[i].fd);
             }
         }
     }
@@ -142,7 +152,7 @@ void Server::listen() {
     }
 }
 
-void Server::handleClient(int clientSocket, Client& client) {
+void Server::handleClient(int clientSocket) {
     int bufsize = 512;
     char buffer[bufsize];
 
@@ -153,56 +163,48 @@ void Server::handleClient(int clientSocket, Client& client) {
 
     if (bytesRead > 0) {
         // Print the received message
-        if (!this->checkCommand(client, buffer)) {
-            if (client.getPassWord() == this->password) {
+        if (!this->checkCommand(clients[clientSocket], buffer)) {
+            if (this->clients[clientSocket].getPassWord() == this->password) {
                 std::cout << "Received message: " << buffer << std::endl;
 
-                // Send the received message to all other clients
-                for (size_t i = 0; i < this->clients.size(); ++i) {
-                    if (this->clients[i].clientSocket != clientSocket) {
-                        send(this->clients[i].clientSocket, buffer, bytesRead, 0);
-                    }
-                }
+                // // Send the received message to all other clients
+                // for (size_t i = 0; i < this->clients.size(); ++i) {
+                //     if (this->clients[i].clientSocket != clientSocket) {
+                //         send(this->clients[i].clientSocket, buffer, bytesRead, 0);
+                //     }
+                // }
             }
         }
     } else if (bytesRead == 0) {
         std::cout << "Client " << clientSocket << " disconnected." << std::endl;
         close(clientSocket);
-        // Remove the client socket from the vector
-        for (size_t i = 0; i < this->clients.size(); ++i) {
-            if (this->clients[i].clientSocket == clientSocket) {
-                this->clients.erase(this->clients.begin() + i);
-                break;
-            }
-        }
+        // Remove the client socket from the map
+        std::map<int, Client>::iterator it = this->clients.find(clientSocket);
+        if (it != this->clients.end())
+            this->clients.erase(it);
     }
 }
 
 bool Server::checkCommand(Client& client, std::string buffer) {
-    std::string command = "";
-    std::string argument = "";
-    size_t i = 0;
-    for (; i < buffer.length(); i++)
-        if (!std::isspace(buffer[i])) break;
-    for (; i < buffer.length(); i++) {
-        if (!std::isspace(buffer[i])) command += buffer[i];
-        if (std::isspace(buffer[i])) break;
-    }
-    for (; i < buffer.length(); i++)
-        if (!std::isspace(buffer[i])) break;
-    if (tolower(command) == "pass") {
-        for (; i < buffer.length(); i++)
-            if (buffer[i] != '\n') argument += buffer[i];
-        client.setPassWord(argument);
+    std::vector<std::string> arguments = splitString(buffer);
+    if (tolower(arguments[0]) == "pass") {
+        checkPassword(client, arguments);
         return true;
     } //else if JOIN...
     else return false;
 }
 
+void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
+    if (arguments.size() > 2)client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (client.getPassWord().length() == 0 && this->password.length() != 0) {
+        if (arguments[1] != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
+        else if (arguments[1] == this->password) client.setPassWord(arguments[1]);
+    }
+}
+
 void Server::disconnect() {
     close(this->serverSocket);
-    for (size_t i = 0; i < this->clients.size(); ++i) {
-        close(this->clients[i].clientSocket);
-    }
+    for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++)
+        close(it->second.getClientSocket());
     this->clients.clear();
 }

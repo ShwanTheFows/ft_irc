@@ -1,8 +1,8 @@
 #include "Client.hpp"
 
-Client::Client() : hostName("127.0.0.1"), port(55555) {}
+Client::Client() : hostName("127.0.0.1") {}
 
-Client::Client(int fd) : userName("default"), nickName("default"), hostName("default"), realName("default"), port(12345), clientSocket(fd) {}
+Client::Client(int fd) : userName("default"), nickName("default"), hostName("default"), realName("default"), clientSocket(fd) {}
 
 Client::Client(const Client& copy) {*this = copy;}
 
@@ -48,68 +48,20 @@ int Client::getClientSocket(void) const {return this->clientSocket;}
 
 std::string Client::getPassWord(void) const {return this->password;}
 
-void Client::setUpSocket(void) {
-    this->clientSocket = -1;
-    this->clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (this->clientSocket == -1) {
-        std::cout << "Error in seting up the client socket!" << std::endl;
-        throw Client::Error();
-    } else {
-        std::cout << "The client socket has been set up succefully!" << std::endl;
-    }
+std::string Client::getPrefixClient(void) {
+    return this->getNickName() + "!" + this->getUserName() + "@" + this->getHostName() + " ";
 }
 
-void Client::connect() {
-    sockaddr_in clientService;
-    clientService.sin_family = AF_INET;
-    if (inet_pton(AF_INET, this->hostName.c_str(), &(clientService.sin_addr)) <= 0 ) {
-        std::cout << "Invalid client address!" << std::endl;
-        throw Client::Error();
-    }
-    clientService.sin_port = htons(this->port);
-    if (::connect(this->clientSocket, reinterpret_cast<struct sockaddr*>(&clientService), sizeof(clientService)) != 0) {
-        std::cout << "Client failed to connect!" << std::endl;
-        throw Client::Error();
-    } else {
-        std::cout << "Client has connected succesfully!" << std::endl;
-    }
+void Client::ClientToClientPrefix(std::string str) {
+    mySend(":" + getPrefixClient() + str);
 }
 
-void Client::messaging(void) {
-    bool isExit = false;
-    int bufsize = 512;
-    char buffer[bufsize];
-
-    recv(this->clientSocket, buffer, bufsize, 0);
-
-    do {
-        std::cout << "Client: ";
-        do {
-            std::cin >> buffer;
-            send(this->clientSocket, buffer, bufsize, 0);
-            if (*buffer == '#') {
-                send(this->clientSocket, buffer, bufsize, 0);
-                *buffer = '*';
-                isExit = true;
-            }
-        } while (*buffer != 42);
-
-        std::cout << "Server: ";
-        do {
-            recv(this->clientSocket, buffer, bufsize, 0);
-            std::cout << buffer << " ";
-            if (*buffer == '#') {
-                *buffer = '*';
-                isExit = true;
-            }
-
-        } while (*buffer != 42);
-        std::cout << std::endl;
-
-    } while (!isExit);
-
+void Client::ServerToClientPrefix(std::string str) {
+    mySend(":" + getHostName() + " " + str);
 }
 
-void Client::disconnect(void) {
-    close(this->clientSocket);
+void Client::mySend(std::string str) {
+    std::string buff = str + "\r\n";
+    if (send(this->clientSocket, buff.c_str(), buff.length(), 0) < 0)
+        throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
 }

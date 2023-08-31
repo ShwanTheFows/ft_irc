@@ -12,6 +12,14 @@
 #include <netdb.h>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
+#include <map>
+#include <thread>
+#include <pthread.h>
+#include <algorithm>
+#include <cstdio>
+#include <sys/poll.h>
+#include <sstream>
 
 class Client {
     private:
@@ -20,7 +28,6 @@ class Client {
         std::string hostName;
         std::string realName;
         std::string password;
-        int port;
     public:
         int clientSocket;
         Client();
@@ -48,11 +55,11 @@ class Client {
         std::string getRealName(void) const;
         int getClientSocket(void) const;
         std::string getPassWord(void) const;
+        std::string getPrefixClient(void);
 
-        void setUpSocket(void);
-        void connect(void);
-        void messaging(void);
-        void disconnect(void);
+        void ClientToClientPrefix(std::string message);
+        void ServerToClientPrefix(std::string message);
+        void mySend(std::string message);
 
 };
 

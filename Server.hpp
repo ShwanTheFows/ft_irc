@@ -2,23 +2,7 @@
 #define SERVER_HPP
 
 #include "Client.hpp"
-#include <iostream>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <cstdlib>
-#include <cstring>
-#include <vector>
-#include <thread>
-#include <pthread.h>
-#include <algorithm>
-#include <cstdio>
-#include <sys/poll.h>
+#include "Errors.hpp"
 
 class Server {
     private:
@@ -26,12 +10,12 @@ class Server {
         std::string ip;
         int port;
         std::string password;
-        std::vector<Client> clients;
+        std::map<int, Client> clients;
 
         void setUpSocket(void);
         void bind(void);
         void listen(void);
-        void handleClient(int clientSocket, Client& client);
+        void handleClient(int clientSocket);
         void disconnect(void);
     public:
         Server();
@@ -56,6 +40,7 @@ class Server {
 
         void run(void);
         bool checkCommand(Client& client, std::string buffer);
+        void checkPassword(Client& client, std::vector<std::string>& arguments);
 };
 
 int parsing(const std::string& str);

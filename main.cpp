@@ -2,7 +2,7 @@
 
 int main(int ac, char* av[]){
     if (ac != 3) {
-        std::cerr << "Usage: ./ircserv [port] [passoword]";
+        std::cerr << "Usage: ./ircserv [port] [password]";
         return 0;
     }
     try {

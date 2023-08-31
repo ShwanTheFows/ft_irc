@@ -1,7 +1,7 @@
 NAME = ircserv
 FLAGS = c++ -Wall -Wextra -Werror -std=c++98
 SRCS = main.cpp Server.cpp Client.cpp
-HPP = Server.hpp Client.hpp
+HPP = Server.hpp Client.hpp Errors.hpp
 OBJECTS = $(SRCS:.cpp=.o)
 
 $(NAME): $(OBJECTS) $(HPP)
