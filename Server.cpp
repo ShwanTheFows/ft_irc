@@ -93,48 +93,25 @@ void Server::bind(void) {
     }
 }
 
-struct ThreadArgs {
-    Server* server;
-    int clientSocket;
-};
-
-// Static wrapper function
-static void* handleClientWrapper(void* arg)
-{
-    ThreadArgs* threadArgs = static_cast<ThreadArgs*>(arg);
-    threadArgs->server->handleClient(threadArgs->clientSocket);
-    delete threadArgs; // Remember to deallocate the memory
-    return NULL;
-}
-
 void Server::listen(void) {
-    if (::listen(this->serverSocket, 1) == -1) {
+        if (::listen(this->serverSocket, 1) == -1) {
         std::cout << "Listening failed!" << std::endl;
         throw Server::Error();
     } else {
-        std::cout << "Listening on port "  <<  this->port << "..." << std::endl;
+        std::cout << "Listening for clients..." << std::endl;
     }
 
-    while (true) {
-        int clientSocket = accept(this->serverSocket, NULL, NULL);
-        if (clientSocket == -1) {
-            std::cout << "Accept failed!" << std::endl;
-            throw Server::Error();
-        } else {
-            std::cout << "Accepted connection." << std::endl;
-            this->clientSockets.push_back(clientSocket);
-            //std::thread clientThread(&Server::handleClient, this, clientSocket);
-            pthread_t clientThread;
-            ThreadArgs* threadArgs = new ThreadArgs;
-            threadArgs->server = this;
-            threadArgs->clientSocket = clientSocket;
-            pthread_create(&clientThread, NULL, &handleClientWrapper, threadArgs);
-            this->clientThread.detach();
-        }
+    this->acceptSocket = accept(this->serverSocket, NULL, NULL);
+
+    if (this->acceptSocket == -1) {
+        std::cout << "Accept failed!" << std::endl;
+        throw Server::Error();
+    } else {
+        std::cout << "Accepted connection." << std::endl;
     }
 }
 
-void Server::handleClient(int clientSocket) {
+void Server::receiver() {
     int bufsize = 512;
     char buffer[bufsize];
 
@@ -149,8 +126,6 @@ void Server::handleClient(int clientSocket) {
             std::cout << "Received message: " << tolower(buffer) << std::endl;
         } else if (bytesRead == 0) {
             std::cout << "Client disconnected." << std::endl;
-            close(clientSocket);
-            this->clientSockets.erase(std::remove(this->clientSockets.begin(), this->clientSockets.end(), clientSocket), this->clientSockets.end());
             break;  // Client disconnected, exit the loop
         } else {
             std::cout << "Error in receiving message." << std::endl;
@@ -158,29 +133,6 @@ void Server::handleClient(int clientSocket) {
         }
     }
 }
-
-// void Server::receiver() {
-//     int bufsize = 512;
-//     char buffer[bufsize];
-
-//     while (true) {
-//         memset(buffer, 0, bufsize);  // Clear the buffer
-
-//         // Receive message from the client
-//         int bytesRead = recv(this->acceptSocket, buffer, bufsize - 1, 0);
-
-//         if (bytesRead > 0) {
-//             // Print the received message
-//             std::cout << "Received message: " << tolower(buffer) << std::endl;
-//         } else if (bytesRead == 0) {
-//             std::cout << "Client disconnected." << std::endl;
-//             break;  // Client disconnected, exit the loop
-//         } else {
-//             std::cout << "Error in receiving message." << std::endl;
-//             break;  // Error occurred, exit the loop
-//         }
-//     }
-// }
 
 void Server::disconnect(void) {
     close(this->serverSocket);

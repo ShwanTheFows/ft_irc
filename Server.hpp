@@ -26,7 +26,6 @@ class Server {
         int acceptSocket;
         std::string password;
         std::vector<int> clientSockets;
-        std::thread clientThread;
     public:
         Server();
         Server(std::string ip,int port, std::string password);
@@ -53,8 +52,6 @@ class Server {
         void listen(void);
         void receiver(void);
         void disconnect(void);
-
-        void handleClient(int clientSocket);
 };
 
 int parsing(const std::string& str);
