@@ -66,74 +66,121 @@ int Server::getServerSocket(void) const {return this->serverSocket;}
 int Server::getPort(void) const {return this->port;}
 std::string Server::getIp(void) const {return this->ip;}
 
-void Server::setUpSocket(void) {
+void Server::run() {
+    setUpSocket();
+    bind();
+    listen();
+
+    std::vector<pollfd> fds(1);
+    fds[0].fd = this->serverSocket;
+    fds[0].events = POLLIN;
+
+    while (true) {
+        int result = poll(fds.data(), fds.size(), -1);
+
+        if (result == -1) {
+            std::cerr << "poll() error" << std::endl;
+            break;
+        }
+
+        if (fds[0].revents & POLLIN) {
+            int clientSocket = accept(this->serverSocket, NULL, NULL);
+
+            if (clientSocket == -1) {
+                std::cout << "Accept failed!" << std::endl;
+                continue;
+            }
+
+            std::cout << "Accepted connection." << std::endl;
+            this->clientSockets.push_back(clientSocket);
+
+            fds.resize(this->clientSockets.size() + 1);
+            fds[this->clientSockets.size()].fd = clientSocket;
+            fds[this->clientSockets.size()].events = POLLIN;
+        }
+
+        for (size_t i = 1; i < fds.size(); ++i) {
+            if (fds[i].revents & POLLIN) {
+                handleClient(fds[i].fd);
+            }
+        }
+    }
+
+    disconnect();
+}
+
+void Server::setUpSocket() {
     this->serverSocket = -1;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (this->serverSocket == -1) {
-        std::cout << "Error in seting up the server socket!" << std::endl;
-        throw Server::Error();
+        std::cout << "Error in setting up the server socket!" << std::endl;
+        throw std::runtime_error("Server socket setup failed.");
     } else {
-        std::cout << "The server socket has been set up succefully!" << std::endl;
+        std::cout << "The server socket has been set up successfully!" << std::endl;
     }
 }
 
-void Server::bind(void) {
+void Server::bind() {
     sockaddr_in service;
     service.sin_family = AF_INET;
-    if (inet_pton(AF_INET, this->ip.c_str(), &(service.sin_addr)) <= 0 ) {
+    if (inet_pton(AF_INET, this->ip.c_str(), &(service.sin_addr)) <= 0) {
         std::cout << "Invalid server address!" << std::endl;
-        throw Server::Error();
+        throw std::runtime_error("Invalid server address.");
     }
     service.sin_port = htons(this->port);
     if (::bind(this->serverSocket, reinterpret_cast<struct sockaddr*>(&service), sizeof(service)) != 0) {
         std::cout << "Binding failed!" << std::endl;
-        throw Server::Error();
+        throw std::runtime_error("Binding failed.");
     } else {
-        std::cout << "Binding is done succefully!" << std::endl;
+        std::cout << "Binding is done successfully!" << std::endl;
     }
 }
 
-void Server::listen(void) {
-        if (::listen(this->serverSocket, 1) == -1) {
+void Server::listen() {
+    if (::listen(this->serverSocket, 1) == -1) {
         std::cout << "Listening failed!" << std::endl;
-        throw Server::Error();
+        throw std::runtime_error("Listening failed.");
     } else {
         std::cout << "Listening for clients..." << std::endl;
     }
-
-    this->acceptSocket = accept(this->serverSocket, NULL, NULL);
-
-    if (this->acceptSocket == -1) {
-        std::cout << "Accept failed!" << std::endl;
-        throw Server::Error();
-    } else {
-        std::cout << "Accepted connection." << std::endl;
-    }
 }
 
-void Server::receiver() {
+void Server::handleClient(int clientSocket) {
     int bufsize = 512;
     char buffer[bufsize];
 
-    while (true) {
-        memset(buffer, 0, bufsize);  // Clear the buffer
+    memset(buffer, 0, bufsize);  // Clear the buffer
 
-        // Receive message from the client
-        int bytesRead = recv(this->acceptSocket, buffer, bufsize - 1, 0);
+    // Receive message from the client
+    int bytesRead = recv(clientSocket, buffer, bufsize - 1, 0);
 
-        if (bytesRead > 0) {
-            // Print the received message
-            std::cout << "Received message: " << tolower(buffer) << std::endl;
-        } else if (bytesRead == 0) {
-            std::cout << "Client disconnected." << std::endl;
-            break;  // Client disconnected, exit the loop
-        } else {
-            std::cout << "Error in receiving message." << std::endl;
-            break;  // Error occurred, exit the loop
+    if (bytesRead > 0) {
+        // Print the received message
+        std::cout << "Received message: " << buffer << std::endl;
+
+        // Send the received message to all other clients
+        for (size_t i = 0; i < this->clientSockets.size(); ++i) {
+            if (this->clientSockets[i] != clientSocket) {
+                send(this->clientSockets[i], buffer, bytesRead, 0);
+            }
+        }
+    } else if (bytesRead == 0) {
+        std::cout << "Client " << clientSocket << " disconnected." << std::endl;
+        close(clientSocket);
+        // Remove the client socket from the vector
+        for (size_t i = 0; i < this->clientSockets.size(); ++i) {
+            if (this->clientSockets[i] == clientSocket) {
+                this->clientSockets.erase(this->clientSockets.begin() + i);
+                break;
+            }
         }
     }
 }
 
-void Server::disconnect(void) {
+void Server::disconnect() {
     close(this->serverSocket);
+    for (size_t i = 0; i < this->clientSockets.size(); ++i) {
+        close(this->clientSockets[i]);
+    }
+    this->clientSockets.clear();
 }
