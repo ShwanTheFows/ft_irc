@@ -47,5 +47,6 @@
 #define RPL_WHOISSERVER(nick1, nick2, ser, infos)      "312 " + nick1 + " " + nick2 + " " + ser + " :" + infos
 #define RPL_WHOISIDLE(nick1, nick2, diff, int)         "317 " + nick1 + " " + nick2 + " " + diff + " " + int + " :seconds idle"
 #define RPL_ENDOFWHOIS(nick1,nick2)                    "318 " + nick1 + " " + nick2 + " :End of /WHOIS list"
+#define ERR_NICKCOLLISION(nick)                    "436 " + nick + " :Nickname collision KILL"
 
 #endif

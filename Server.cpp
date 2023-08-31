@@ -48,7 +48,7 @@ int parsing(const std::string& str) {
     return port;
 }
 
-Server::Server() : ip("127.0.0.1"), port(55555) {}
+Server::Server() {}
 
 Server::Server(std::string ip, int port, std::string password) : ip(ip), port(port), password(password) {}
 
@@ -102,7 +102,7 @@ void Server::run() {
             }
 
             std::cout << "Accepted connection." << std::endl;
-            this->clients[clientSocket] = Client(clientSocket);
+            this->clients[clientSocket] = Client(clientSocket, this->ip);
 
             fds.resize(this->clients.size() + 1);
             fds[this->clients.size()].fd = clientSocket;
@@ -168,11 +168,10 @@ void Server::handleClient(int clientSocket) {
                 std::cout << "Received message: " << buffer << std::endl;
 
                 // // Send the received message to all other clients
-                // for (size_t i = 0; i < this->clients.size(); ++i) {
-                //     if (this->clients[i].clientSocket != clientSocket) {
-                //         send(this->clients[i].clientSocket, buffer, bytesRead, 0);
-                //     }
-                // }
+                for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
+                    if (it->second.clientSocket != clientSocket)
+                        send(it->second.clientSocket, buffer, bytesRead, 0);
+                }
             }
         }
     } else if (bytesRead == 0) {
@@ -190,16 +189,50 @@ bool Server::checkCommand(Client& client, std::string buffer) {
     if (tolower(arguments[0]) == "pass") {
         checkPassword(client, arguments);
         return true;
-    } //else if JOIN...
+    } else if (client.logged && tolower(arguments[0]) == "nick") {
+        checkNickName(client, arguments);
+        return true;
+    }
     else return false;
 }
 
 void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() > 2)client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (client.getPassWord().length() == 0 && this->password.length() != 0) {
+    else if (client.getPassWord().empty() && this->password.length() != 0) {
         if (arguments[1] != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
-        else if (arguments[1] == this->password) client.setPassWord(arguments[1]);
+        else if (arguments[1] == this->password) {
+            client.setPassWord(arguments[1]);
+            client.logged = true;
+        }
     }
+}
+
+bool isValidNickname(const std::string& nickname) {
+    if (nickname.empty() || !isalpha(nickname[0]) || nickname.length() > 9) return false;
+
+    for (size_t i = 1; i < nickname.length(); ++i) {
+        char ch = nickname[i];
+        if (!isalnum(ch) && ch != '_' && ch != '-') return false;
+    }
+    return true;
+}
+
+void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
+    if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
+    else if (client.getNickName().empty()) {
+        if (!isValidNickname(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
+        else {
+            for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
+                if (it->second.getNickName() == arguments[1]) {
+                    client.ServerToClientPrefix(ERR_NICKCOLLISION(client.getNickName()));
+                    return ;
+                }
+            }
+            client.setNickName(arguments[1]);
+        }
+    }
+    else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
 }
 
 void Server::disconnect() {

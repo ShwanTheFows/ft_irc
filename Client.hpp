@@ -30,8 +30,9 @@ class Client {
         std::string password;
     public:
         int clientSocket;
+        bool logged;
         Client();
-        Client(int fd);
+        Client(int fd, std::string hostname);
         Client(const Client& copy);
         ~Client();
 

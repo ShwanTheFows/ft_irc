@@ -1,8 +1,8 @@
 #include "Client.hpp"
 
-Client::Client() : hostName("127.0.0.1") {}
+Client::Client(){}
 
-Client::Client(int fd) : userName("default"), nickName("default"), hostName("default"), realName("default"), clientSocket(fd) {}
+Client::Client(int fd, std::string hostname) : hostName(hostname), clientSocket(fd), logged(false) {}
 
 Client::Client(const Client& copy) {*this = copy;}
 
