@@ -19,11 +19,12 @@ class Client {
         std::string nickName;
         std::string hostName;
         std::string realName;
-        int clientSocket;
+        std::string password;
         int port;
     public:
+        int clientSocket;
         Client();
-        Client(std::string ip, int port);
+        Client(int fd);
         Client(const Client& copy);
         ~Client();
 
@@ -39,12 +40,14 @@ class Client {
         void setHostName(std::string hostname);
         void setRealName(std::string realname);
         void setClientSocket(int socket);
+        void setPassWord(std::string passwd);
 
         std::string getUserName(void) const;
         std::string getNickName(void) const;
         std::string getHostName(void) const;
         std::string getRealName(void) const;
         int getClientSocket(void) const;
+        std::string getPassWord(void) const;
 
         void setUpSocket(void);
         void connect(void);

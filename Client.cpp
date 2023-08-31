@@ -2,7 +2,7 @@
 
 Client::Client() : hostName("127.0.0.1"), port(55555) {}
 
-Client::Client(std::string ip, int port) : userName("default"), nickName("default"), hostName(ip), realName("default"), port(port) {}
+Client::Client(int fd) : userName("default"), nickName("default"), hostName("default"), realName("default"), port(12345), clientSocket(fd) {}
 
 Client::Client(const Client& copy) {*this = copy;}
 
@@ -34,6 +34,8 @@ void Client::setRealName(std::string realname) {this->realName = realname;}
 
 void Client::setClientSocket(int socket) {this->clientSocket = socket;}
 
+void Client::setPassWord(std::string passwd) {this->password = passwd;}
+
 std::string Client::getUserName(void) const {return this->userName;}
 
 std::string Client::getNickName(void) const {return this->nickName;}
@@ -43,6 +45,8 @@ std::string Client::getHostName(void) const {return this->hostName;}
 std::string Client::getRealName(void) const {return this->realName;}
 
 int Client::getClientSocket(void) const {return this->clientSocket;}
+
+std::string Client::getPassWord(void) const {return this->password;}
 
 void Client::setUpSocket(void) {
     this->clientSocket = -1;

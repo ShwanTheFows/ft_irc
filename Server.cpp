@@ -92,16 +92,16 @@ void Server::run() {
             }
 
             std::cout << "Accepted connection." << std::endl;
-            this->clientSockets.push_back(clientSocket);
+            this->clients.push_back(Client(clientSocket));
 
-            fds.resize(this->clientSockets.size() + 1);
-            fds[this->clientSockets.size()].fd = clientSocket;
-            fds[this->clientSockets.size()].events = POLLIN;
+            fds.resize(this->clients.size() + 1);
+            fds[this->clients.size()].fd = clientSocket;
+            fds[this->clients.size()].events = POLLIN;
         }
 
         for (size_t i = 1; i < fds.size(); ++i) {
             if (fds[i].revents & POLLIN) {
-                handleClient(fds[i].fd);
+                handleClient(fds[i].fd, this->clients[i - 1]);
             }
         }
     }
@@ -124,12 +124,10 @@ void Server::bind() {
     sockaddr_in service;
     service.sin_family = AF_INET;
     if (inet_pton(AF_INET, this->ip.c_str(), &(service.sin_addr)) <= 0) {
-        std::cout << "Invalid server address!" << std::endl;
         throw std::runtime_error("Invalid server address.");
     }
     service.sin_port = htons(this->port);
     if (::bind(this->serverSocket, reinterpret_cast<struct sockaddr*>(&service), sizeof(service)) != 0) {
-        std::cout << "Binding failed!" << std::endl;
         throw std::runtime_error("Binding failed.");
     } else {
         std::cout << "Binding is done successfully!" << std::endl;
@@ -138,14 +136,13 @@ void Server::bind() {
 
 void Server::listen() {
     if (::listen(this->serverSocket, 1) == -1) {
-        std::cout << "Listening failed!" << std::endl;
         throw std::runtime_error("Listening failed.");
     } else {
         std::cout << "Listening for clients..." << std::endl;
     }
 }
 
-void Server::handleClient(int clientSocket) {
+void Server::handleClient(int clientSocket, Client& client) {
     int bufsize = 512;
     char buffer[bufsize];
 
@@ -156,31 +153,53 @@ void Server::handleClient(int clientSocket) {
 
     if (bytesRead > 0) {
         // Print the received message
-        std::cout << "Received message: " << buffer << std::endl;
+        this->checkPassword(client, buffer);
+        if (client.getPassWord() == this->password) {
+            std::cout << "Received message: " << buffer << std::endl;
 
-        // Send the received message to all other clients
-        for (size_t i = 0; i < this->clientSockets.size(); ++i) {
-            if (this->clientSockets[i] != clientSocket) {
-                send(this->clientSockets[i], buffer, bytesRead, 0);
+            // Send the received message to all other clients
+            for (size_t i = 0; i < this->clients.size(); ++i) {
+                if (this->clients[i].clientSocket != clientSocket) {
+                    send(this->clients[i].clientSocket, buffer, bytesRead, 0);
+                }
             }
         }
     } else if (bytesRead == 0) {
         std::cout << "Client " << clientSocket << " disconnected." << std::endl;
         close(clientSocket);
         // Remove the client socket from the vector
-        for (size_t i = 0; i < this->clientSockets.size(); ++i) {
-            if (this->clientSockets[i] == clientSocket) {
-                this->clientSockets.erase(this->clientSockets.begin() + i);
+        for (size_t i = 0; i < this->clients.size(); ++i) {
+            if (this->clients[i].clientSocket == clientSocket) {
+                this->clients.erase(this->clients.begin() + i);
                 break;
             }
         }
     }
 }
 
+void Server::checkPassword(Client& client, std::string buffer) {
+    std::string command = "";
+    std::string password = "";
+    size_t i = 0;
+    for (; i < buffer.length(); i++)
+        if (!std::isspace(buffer[i])) break;
+    for (; i < buffer.length(); i++) {
+        if (!std::isspace(buffer[i])) command += buffer[i];
+        if (std::isspace(buffer[i])) break;
+    }
+    for (; i < buffer.length(); i++)
+        if (!std::isspace(buffer[i])) break;
+    if (tolower(command) == "pass") {
+        for (; i < buffer.length(); i++)
+            if (buffer[i] != '\n') password += buffer[i];
+        client.setPassWord(password);
+    }
+}
+
 void Server::disconnect() {
     close(this->serverSocket);
-    for (size_t i = 0; i < this->clientSockets.size(); ++i) {
-        close(this->clientSockets[i]);
+    for (size_t i = 0; i < this->clients.size(); ++i) {
+        close(this->clients[i].clientSocket);
     }
-    this->clientSockets.clear();
+    this->clients.clear();
 }

@@ -26,12 +26,12 @@ class Server {
         std::string ip;
         int port;
         std::string password;
-        std::vector<int> clientSockets;
+        std::vector<Client> clients;
 
         void setUpSocket(void);
         void bind(void);
         void listen(void);
-        void handleClient(int clientSocket);
+        void handleClient(int clientSocket, Client& client);
         void disconnect(void);
     public:
         Server();
@@ -55,6 +55,7 @@ class Server {
         std::string getIp(void) const;
 
         void run(void);
+        void checkPassword(Client& client, std::string buffer);
 };
 
 int parsing(const std::string& str);
