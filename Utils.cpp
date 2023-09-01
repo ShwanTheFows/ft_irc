@@ -68,6 +68,17 @@ std::string removeTrailingWhitespace(const std::string& str) {
     return str.substr(0, endIndex + 1);
 }
 
+void removeTrailingNewline(char* str) {
+    if (str == NULL)
+        return;
+        
+    size_t length = strlen(str);
+    while (length > 0 && (str[length - 1] == '\r' || str[length - 1] == '\n')) {
+        str[length - 1] = '\0';
+        length--;
+    }
+}
+
 std::string getHostIpAddress(void) {
     std::string ipAddress;
     FILE* pipe = popen("ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -n 1", "r");
@@ -105,6 +116,18 @@ bool isValidUsername(const std::string& username) {
     // Username should not start or end with underscores or dashes
     if (username[0] == '_' || username[0] == '-' || username[username.length() - 1] == '_' || username[username.length() - 1] == '-')
         return false;
+
+    return true;
+}
+
+bool isValidChannelName(const std::string& channelName) {
+    if (channelName.empty() || channelName[0] != '#' || channelName.length() <= 1)
+        return false;
+
+    for (size_t i = 1; i < channelName.length(); ++i) {
+        if (!isalnum(channelName[i]) && channelName[i] != '_')
+            return false;
+    }
 
     return true;
 }

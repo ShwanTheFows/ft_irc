@@ -28,6 +28,20 @@ int Server::getServerSocket(void) const {return this->serverSocket;}
 int Server::getPort(void) const {return this->port;}
 std::string Server::getIp(void) const {return this->ip;}
 
+void Server::cmdMapinit(void) {
+    std::string cmd_strings[] = {"join", "kick", "part", "notice", "privmsg", "quit"
+    , "topic", "names", "list", "invite", "mode", "oper", "wallops", "whois"};
+    cmd cmd_ptrs[] = {&Server::join, &Server::kick, 
+    &Server::part, &Server::notice, &Server::privmsg, 
+    &Server::quit, &Server::topic, &Server::names, 
+    &Server::list, &Server::invite, &Server::mode, 
+    &Server::oper, &Server::wallops, &Server::whois};
+    int num_cmds = sizeof(cmd_ptrs) / sizeof(cmd);
+
+    for (int i = 0; i < num_cmds; i++)
+        cmdMap.insert(std::make_pair(cmd_strings[i], cmd_ptrs[i]));
+}
+
 void Server::run() {
     setUpSocket();
     bind();
@@ -111,20 +125,14 @@ void Server::handleClient(int clientSocket) {
     memset(buffer, 0, bufsize);  // Clear the buffer
 
     // Receive message from the client
-    int bytesRead = recv(clientSocket, buffer, bufsize - 1, 0);
+    int bytesRead = recv(clientSocket, buffer, bufsize - 2, 0);
 
     if (bytesRead > 0) {
         // Print the received message
-        if (!this->checkCommand(clients[clientSocket], buffer)) {
-            if (this->clients[clientSocket].isRegistered) {
-                std::cout << "Received message: " << buffer << std::endl;
-
-                // // Send the received message to all other clients
-                for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
-                    if (it->second.clientSocket != clientSocket)
-                        send(it->second.clientSocket, buffer, bytesRead, 0);
-                }
-            }
+        removeTrailingNewline(buffer);
+        if (!this->checkLoginCommands(clients[clientSocket], buffer)) {
+            if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], buffer))
+                clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), buffer));
         }
     } else if (bytesRead == 0) {
         std::cout << "Client " << clientSocket << " disconnected." << std::endl;
@@ -136,9 +144,20 @@ void Server::handleClient(int clientSocket) {
     }
 }
 
-bool Server::checkCommand(Client& client, std::string buffer) {
+bool Server::checkCommands(Client& client, std::string buffer) {
     std::vector<std::string> arguments = splitString(buffer);
-    if (tolower(arguments[0]) == "pass") {
+    std::map<std::string, cmd>::iterator it;
+    it = cmdMap.find(tolower(arguments[0]));
+    if (it == cmdMap.end()) return false;
+    else
+        (this->*(it->second))(client, arguments);
+    return true;
+}
+
+bool Server::checkLoginCommands(Client& client, std::string buffer) {
+    std::vector<std::string> arguments = splitString(buffer);
+    if (arguments.empty()) return true;
+    else if (tolower(arguments[0]) == "pass") {
         checkPassword(client, arguments);
         return true;
     } else if (client.logged && tolower(arguments[0]) == "nick") {
@@ -148,15 +167,11 @@ bool Server::checkCommand(Client& client, std::string buffer) {
         checkUserCommand(client, arguments);
         return true;
     }
-    if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
-        client.isRegistered = true;
-        return false;
-    }
     else return false;
 }
 
 void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() > 2)client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getPassWord().empty() && this->password.length() != 0) {
         if (arguments[1] != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
@@ -181,6 +196,8 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
                 }
             }
             client.setNickName(arguments[1]);
+            if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty())
+                client.isRegistered = true;
         }
     }
     else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
@@ -194,6 +211,8 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
         if (!isValidUsername(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else client.setUserName(arguments[1]);
         client.setRealName(joinVectorFromIndex(arguments, 4));
+        if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty())
+            client.isRegistered = true;
     }
 }
 
@@ -203,3 +222,34 @@ void Server::disconnect() {
         close(it->second.getClientSocket());
     this->clients.clear();
 }
+
+void Server::join(Client& client, std::vector<std::string>& arguments) {
+    (void)client; (void)arguments;
+    std::cout << "nadi" << std::endl;
+}
+
+void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::part(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::notice(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::privmsg(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::quit(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::topic(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::names(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::list(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::mode(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::oper(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::wallops(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+
+void Server::whois(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
