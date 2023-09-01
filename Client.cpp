@@ -2,7 +2,7 @@
 
 Client::Client(){}
 
-Client::Client(int fd, std::string hostname) : hostName(hostname), clientSocket(fd), logged(false) {}
+Client::Client(int fd, std::string hostname) : hostName(hostname), clientSocket(fd), logged(false), isRegistered(false) {}
 
 Client::Client(const Client& copy) {*this = copy;}
 

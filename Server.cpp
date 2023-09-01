@@ -1,53 +1,5 @@
 #include "Server.hpp"
 
-std::vector<std::string> splitString(const std::string& str) {
-    std::vector<std::string> tokens;
-    std::istringstream inputStringStream(str);
-    std::string token;
-    while (inputStringStream >> token) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
-std::string tolower(const std::string& input) {
-    std::string result = input;
-    for (size_t i = 0; i < result.length(); ++i) {
-        result[i] = std::tolower(result[i]);
-    }
-    return result;
-}
-
-int parsing(const std::string& str) {
-    int port;
-
-    if (str.empty()) {
-        std::cerr << "Please enter port number!" << std::endl;
-        exit(1);
-    }
-
-    size_t i = 0;
-
-    if (str[i] == '+' || str[i] == '-')
-        ++i;
-
-    for (; i < str.length(); ++i) {
-        if (!std::isdigit(str[i])) {
-            std::cerr << "The port should be a number!" << std::endl;
-            exit(1);
-        }
-    }
-
-    port = std::atoi(str.c_str());
-
-    if (port < 1024 || port > 65535) {
-        std::cerr << "Invalid port number!" << std::endl;
-        exit(1);
-    }
-
-    return port;
-}
-
 Server::Server() {}
 
 Server::Server(std::string ip, int port, std::string password) : ip(ip), port(port), password(password) {}
@@ -164,7 +116,7 @@ void Server::handleClient(int clientSocket) {
     if (bytesRead > 0) {
         // Print the received message
         if (!this->checkCommand(clients[clientSocket], buffer)) {
-            if (this->clients[clientSocket].getPassWord() == this->password) {
+            if (this->clients[clientSocket].isRegistered) {
                 std::cout << "Received message: " << buffer << std::endl;
 
                 // // Send the received message to all other clients
@@ -196,6 +148,10 @@ bool Server::checkCommand(Client& client, std::string buffer) {
         checkUserName(client, arguments);
         return true;
     }
+    if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
+        client.isRegistered = true;
+        return false;
+    }
     else return false;
 }
 
@@ -208,16 +164,6 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
             client.logged = true;
         }
     }
-}
-
-bool isValidNickname(const std::string& nickname) {
-    if (nickname.empty() || !isalpha(nickname[0]) || nickname.length() > 9) return false;
-
-    for (size_t i = 1; i < nickname.length(); ++i) {
-        char ch = nickname[i];
-        if (!isalnum(ch) && ch != '_' && ch != '-') return false;
-    }
-    return true;
 }
 
 void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
@@ -236,6 +182,11 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
         }
     }
     else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
+}
+
+void Server::checkUserName(Client& client, std::vector<std::string>& arguments) {
+    if (arguments.size() < 5) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
 }
 
 void Server::disconnect() {

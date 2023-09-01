@@ -3,6 +3,7 @@
 
 #include "Client.hpp"
 #include "Errors.hpp"
+#include "Utils.hpp"
 
 class Server {
     private:

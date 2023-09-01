@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <sys/poll.h>
-#include <sstream>
 
 class Client {
     private:
@@ -31,6 +30,7 @@ class Client {
     public:
         int clientSocket;
         bool logged;
+        bool isRegistered;
         Client();
         Client(int fd, std::string hostname);
         Client(const Client& copy);
