@@ -248,6 +248,9 @@ void Server::disconnect() {
 void Server::join(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (!isValidChannelName(arguments[1])) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
+    else {
+        //your code
+    }
 }
 
 void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
