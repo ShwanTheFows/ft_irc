@@ -9,6 +9,21 @@ std::vector<std::string> splitString(const std::string& str) {
     return tokens;
 }
 
+std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex) {
+    std::string result;
+
+    if (startIndex < 0 || startIndex >= input.size())
+        return result;  // Return an empty string if the start index is out of bounds
+
+    for (size_t i = startIndex; i < input.size(); ++i) {
+        result += input[i];
+        if (i != input.size() - 1)
+            result += " ";  // Add a space if it's not the last element
+    }
+    if (result[0] == ':') return result.substr(1);
+    else return result;
+}
+
 std::string tolower(const std::string& input) {
     std::string result = input;
     for (size_t i = 0; i < result.length(); ++i)
@@ -65,7 +80,6 @@ std::string getHostIpAddress(void) {
     return removeTrailingWhitespace(ipAddress);
 }
 
-
 bool isValidNickname(const std::string& nickname) {
     if (nickname.empty() || !isalpha(nickname[0]) || nickname.length() > 9) return false;
 
@@ -76,22 +90,21 @@ bool isValidNickname(const std::string& nickname) {
     return true;
 }
 
-bool isValidUsername(const char* username) {
+bool isValidUsername(const std::string& username) {
     // Username must be non-empty
-    if (strlen(username) == 0)
+    if (username.empty())
         return false;
 
     // Check each character of the username
-    for (size_t i = 0; i < strlen(username); ++i) {
+    for (size_t i = 0; i < username.length(); ++i) {
         // Username can only contain alphanumeric characters, underscores, and dashes
         if (!isalnum(username[i]) && username[i] != '_' && username[i] != '-')
             return false;
     }
 
     // Username should not start or end with underscores or dashes
-    if (username[0] == '_' || username[0] == '-' || username[strlen(username) - 1] == '_' || username[strlen(username) - 1] == '-')
+    if (username[0] == '_' || username[0] == '-' || username[username.length() - 1] == '_' || username[username.length() - 1] == '-')
         return false;
 
     return true;
 }
-

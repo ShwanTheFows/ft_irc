@@ -43,9 +43,7 @@ class Server {
         bool checkCommand(Client& client, std::string buffer);
         void checkPassword(Client& client, std::vector<std::string>& arguments);
         void checkNickName(Client& client, std::vector<std::string>& arguments);
-        void checkUserName(Client& client, std::vector<std::string>& arguments);
+        void checkUserCommand(Client& client, std::vector<std::string>& arguments);
 };
-
-int parsing(const std::string& str);
 
 #endif

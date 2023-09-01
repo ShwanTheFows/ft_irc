@@ -145,7 +145,7 @@ bool Server::checkCommand(Client& client, std::string buffer) {
         checkNickName(client, arguments);
         return true;
     } else if (client.logged && tolower(arguments[0]) == "user") {
-        checkUserName(client, arguments);
+        checkUserCommand(client, arguments);
         return true;
     }
     if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
@@ -157,6 +157,7 @@ bool Server::checkCommand(Client& client, std::string buffer) {
 
 void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() > 2)client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getPassWord().empty() && this->password.length() != 0) {
         if (arguments[1] != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
         else if (arguments[1] == this->password) {
@@ -168,6 +169,7 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
 
 void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
     else if (client.getNickName().empty()) {
         if (!isValidNickname(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
@@ -184,9 +186,15 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
     else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
 }
 
-void Server::checkUserName(Client& client, std::vector<std::string>& arguments) {
+void Server::checkUserCommand(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 5) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
+    else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
+    else if (client.getUserName().empty()) {
+        if (!isValidUsername(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
+        else client.setUserName(arguments[1]);
+        client.setRealName(joinVectorFromIndex(arguments, 4));
+    }
 }
 
 void Server::disconnect() {
