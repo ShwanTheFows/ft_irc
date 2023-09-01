@@ -46,6 +46,7 @@ void Server::run() {
     setUpSocket();
     bind();
     listen();
+    cmdMapinit();
 
     std::vector<pollfd> fds(1);
     fds[0].fd = this->serverSocket;
@@ -147,11 +148,17 @@ void Server::handleClient(int clientSocket) {
 bool Server::checkCommands(Client& client, std::string buffer) {
     std::vector<std::string> arguments = splitString(buffer);
     std::map<std::string, cmd>::iterator it;
-    it = cmdMap.find(tolower(arguments[0]));
-    if (it == cmdMap.end()) return false;
-    else
+
+    it = this->cmdMap.find(tolower(arguments[0]));
+
+    if (it == cmdMap.end()){
+        std::cout << "dkhlt" <<std::endl;
+        return false;
+    }
+    else {
         (this->*(it->second))(client, arguments);
-    return true;
+        return true;
+    }
 }
 
 bool Server::checkLoginCommands(Client& client, std::string buffer) {
