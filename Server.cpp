@@ -43,6 +43,10 @@ void Server::cmdMapinit(void) {
 }
 
 void Server::run() {
+    time_t now = time(0);
+    tm *gmtm = gmtime(&now);
+    timeOfCreation = asctime(gmtm);
+    timeOfCreation.erase(std::remove(timeOfCreation.begin(), timeOfCreation.end(), '\n'), timeOfCreation.end());
     setUpSocket();
     bind();
     listen();
@@ -69,7 +73,8 @@ void Server::run() {
             }
 
             std::cout << "Accepted connection." << std::endl;
-            this->clients[clientSocket] = Client(clientSocket, this->ip);
+            this->clients[clientSocket] = Client(clientSocket);
+            this->clients[clientSocket].setServerHostName(this->ip);
 
             fds.resize(this->clients.size() + 1);
             fds[this->clients.size()].fd = clientSocket;
@@ -167,11 +172,17 @@ bool Server::checkLoginCommands(Client& client, std::string buffer) {
     else if (tolower(arguments[0]) == "pass") {
         checkPassword(client, arguments);
         return true;
-    } else if (client.logged && tolower(arguments[0]) == "nick") {
-        checkNickName(client, arguments);
+    } else if (tolower(arguments[0]) == "nick") {
+        if (!client.logged)
+            client.ServerToClientPrefix(ERR_NOTREGISTERED(client.getNickName()));
+        else
+            checkNickName(client, arguments);
         return true;
-    } else if (client.logged && tolower(arguments[0]) == "user") {
-        checkUserCommand(client, arguments);
+    } else if (tolower(arguments[0]) == "user") {
+        if (!client.logged)
+            client.ServerToClientPrefix(ERR_NOTREGISTERED(client.getNickName()));
+        else
+            checkUserCommand(client, arguments);
         return true;
     }
     else return false;
@@ -203,8 +214,10 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
                 }
             }
             client.setNickName(arguments[1]);
-            if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty())
+            if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
                 client.isRegistered = true;
+                client.welcome(timeOfCreation);
+            }
         }
     }
     else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
@@ -218,8 +231,10 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
         if (!isValidUsername(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else client.setUserName(arguments[1]);
         client.setRealName(joinVectorFromIndex(arguments, 4));
-        if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty())
+        if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
             client.isRegistered = true;
+            client.welcome(timeOfCreation);
+        }
     }
 }
 
@@ -231,8 +246,8 @@ void Server::disconnect() {
 }
 
 void Server::join(Client& client, std::vector<std::string>& arguments) {
-    (void)client; (void)arguments;
-    std::cout << "nadi" << std::endl;
+    if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (!isValidChannelName(arguments[1])) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
 }
 
 void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}

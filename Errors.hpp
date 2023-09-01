@@ -48,5 +48,6 @@
 #define RPL_WHOISIDLE(nick1, nick2, diff, int)         "317 " + nick1 + " " + nick2 + " " + diff + " " + int + " :seconds idle"
 #define RPL_ENDOFWHOIS(nick1,nick2)                    "318 " + nick1 + " " + nick2 + " :End of /WHOIS list"
 #define ERR_NICKCOLLISION(nick)                    "436 " + nick + " :Nickname collision KILL"
+#define ERR_NOTREGISTERED(nick)                    "451 " + nick + " :You have not registered"
 
 #endif

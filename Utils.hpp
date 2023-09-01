@@ -17,5 +17,6 @@ void removeTrailingNewline(char* str);
 std::string getHostIpAddress(void);
 bool isValidNickname(const std::string& nickname);
 bool isValidUsername(const std::string& username);
+bool isValidChannelName(const std::string& channelName);
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "Errors.hpp"
+#include "Utils.hpp"
 #include <iostream>
 #include <string.h>
 #include <sys/types.h>
@@ -27,12 +29,13 @@ class Client {
         std::string hostName;
         std::string realName;
         std::string password;
+        std::string serverHostName;
     public:
         int clientSocket;
         bool logged;
         bool isRegistered;
         Client();
-        Client(int fd, std::string hostname);
+        Client(int fd);
         Client(const Client& copy);
         ~Client();
 
@@ -49,11 +52,13 @@ class Client {
         void setRealName(std::string realname);
         void setClientSocket(int socket);
         void setPassWord(std::string passwd);
+        void setServerHostName(std::string hostname);
 
         std::string getUserName(void) const;
         std::string getNickName(void) const;
         std::string getHostName(void) const;
         std::string getRealName(void) const;
+        std::string getServerHostName(void) const;
         int getClientSocket(void) const;
         std::string getPassWord(void) const;
         std::string getPrefixClient(void) const;
@@ -61,6 +66,7 @@ class Client {
         void ClientToClientPrefix(std::string message);
         void ServerToClientPrefix(std::string message);
         void mySend(std::string message);
+        void welcome(std::string timeOfCreation);
 
 };
 

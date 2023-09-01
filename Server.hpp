@@ -2,8 +2,6 @@
 #define SERVER_HPP
 
 #include "Client.hpp"
-#include "Errors.hpp"
-#include "Utils.hpp"
 
 class Server {
     private:
@@ -19,6 +17,7 @@ class Server {
         void handleClient(int clientSocket);
         void disconnect(void);
     public:
+        std::string timeOfCreation;
         typedef void (Server::*cmd)(Client& client, std::vector<std::string>& arguments);
         std::map<std::string, cmd> cmdMap;
 
