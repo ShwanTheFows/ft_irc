@@ -244,12 +244,11 @@ void Server::disconnect() {
     this->clients.clear();
 }
 
-void Server::join(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (!isValidChannelName(trim(arguments[1]))) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
-    else {
-        //your code
-    }
+void Server::sendMessageToClient(Client& sender, const std::string& message)
+{
+    std::string msg = ":" + sender.getPrefixClient() + message + "\r\n";
+    send(sender.getClientSocket(), msg.c_str(), msg.length(), 0);
+    msg.clear();
 }
 
 void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
@@ -257,11 +256,6 @@ void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)cl
 void Server::part(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::notice(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    //else if (arguments.size() >= 2 && arguments[1][0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT (client.getNickName()));
-}
 
 void Server::quit(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 

@@ -14,7 +14,7 @@
 #define ERR_ALREADYREGISTRED(nick)              "462 " + nick + " :You may not reregister"
 #define ERR_CANNOTSENDTOCHAN(nick)              "404 " + nick + " :Cannot send to channel"
 #define ERR_NOTEXTTOSEND(nick)                  "412 " + nick + " :No text to send"
-#define ERR_NOSUCHNICK(nick,nick_channel)       "401 " + nick + " " + nick_channel + " :No such nick/channel"
+#define ERR_NOSUCHNICK(nick)       "401 " + nick + " :No such nick/channel"
 #define ERR_BADCHANNAME(nick)                   "479 " + nick + " :Invalid channel name"
 #define ERR_USERONCHANNEL(nick, ch)             "443 " + nick + " " + ch + " :is already on channel"
 #define RPL_NAMREPLY(nick, ch, members)         "353 " + nick + " = " + ch + " :" + members
@@ -49,5 +49,7 @@
 #define RPL_ENDOFWHOIS(nick1,nick2)                    "318 " + nick1 + " " + nick2 + " :End of /WHOIS list"
 #define ERR_NICKCOLLISION(nick)                    "436 " + nick + " :Nickname collision KILL"
 #define ERR_NOTREGISTERED(nick)                    "451 " + nick + " :You have not registered"
+#define ERR_NORECIPIENT(nick, cmd)                    "411 " + nick + " :No recipient given (" + cmd + ")"
+#define ERR_TOOMANYTARGETS(target)                    "407 " + target + " :Duplicate recipients. No message delivered"
 
 #endif

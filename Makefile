@@ -1,6 +1,6 @@
 NAME = ircserv
 FLAGS = c++ -Wall -Wextra -Werror -std=c++98
-SRCS = main.cpp Server.cpp Client.cpp Utils.cpp
+SRCS = main.cpp Server.cpp Client.cpp Utils.cpp ./commands/join.cpp ./commands/privmsg.cpp
 HPP = Server.hpp Client.hpp Errors.hpp Utils.hpp
 OBJECTS = $(SRCS:.cpp=.o)
 
