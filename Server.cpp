@@ -75,6 +75,7 @@ void Server::run() {
             std::cout << "Accepted connection." << std::endl;
             this->clients[clientSocket] = Client(clientSocket);
             this->clients[clientSocket].setServerHostName(this->ip);
+            this->clients[clientSocket].timeJoined = std::time(NULL);
 
             fds.resize(this->clients.size() + 1);
             fds[this->clients.size()].fd = clientSocket;
@@ -257,12 +258,6 @@ void Server::part(Client& client, std::vector<std::string>& arguments) {(void)cl
 
 void Server::notice(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
-void Server::quit(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::topic(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::names(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
 void Server::list(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
@@ -272,5 +267,3 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {(void)cl
 void Server::oper(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::wallops(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::whois(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}

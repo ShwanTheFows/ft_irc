@@ -31,6 +31,7 @@ class Client {
         std::string password;
         std::string serverHostName;
     public:
+        std::time_t timeJoined;
         int clientSocket;
         bool logged;
         bool isRegistered;
@@ -62,6 +63,7 @@ class Client {
         int getClientSocket(void) const;
         std::string getPassWord(void) const;
         std::string getPrefixClient(void) const;
+        const std::string getJoiningTime(void) const;
 
         void ClientToClientPrefix(std::string message);
         void ServerToClientPrefix(std::string message);

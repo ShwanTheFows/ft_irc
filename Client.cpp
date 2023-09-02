@@ -54,6 +54,12 @@ std::string Client::getPassWord(void) const {return this->password;}
 
 std::string Client::getServerHostName(void) const {return this->serverHostName;}
 
+const std::string Client::getJoiningTime(void) const {
+    std::stringstream ss;
+    ss << this->timeJoined;
+    return ss.str();
+}
+
 std::string Client::getPrefixClient(void) const {
     return this->getNickName() + "!" + this->getUserName() + "@" + this->getHostName() + " ";
 }
