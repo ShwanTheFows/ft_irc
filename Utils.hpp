@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstring>
 #include <cctype>
+#include <algorithm>
 
 std::vector<std::string> splitString(const std::string& str);
 std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex);

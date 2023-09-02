@@ -1,15 +1,22 @@
 #include "Utils.hpp"
 
 std::vector<std::string> splitString(const std::string& str) {
-    std::vector<std::string> tokens;
-    std::istringstream inputStringStream(str);
-    std::string token;
-    while (inputStringStream >> token) {
-        std::size_t spacesCount = token.find_first_not_of(" \t");
-        std::string tokenWithSpaces = std::string(spacesCount, ' ') + token;
-        tokens.push_back(tokenWithSpaces);
+    size_t i  = 0;
+    std::string element = "";
+    std::vector<std::string> result;
+    while (str[i]) {
+        element += str[i];
+        if (std::isspace(str[i]) || str[i + 1] == '\0') {
+            for (size_t j = 0; j < element.length(); j++) {
+                if (!std::isspace(element[j])) {
+                    result.push_back(removeTrailingWhitespace(element));
+                    element = "";
+                }
+            }
+        }
+        i++;
     }
-    return tokens;
+    return result;
 }
 
 std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex) {
@@ -23,8 +30,11 @@ std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t st
         if (i != input.size() - 1)
             result += " ";  // Add a space if it's not the last element
     }
-    if (result[0] == ':') return result.substr(1);
-    else return result;
+    int i = 0;
+    while (input[startIndex][i] && std::isspace(input[startIndex][i]))
+        i++;
+    if (input[startIndex][i] == ':') return result.substr(i + 1); 
+    return result;
 }
 
 std::string tolower(const std::string& input) {

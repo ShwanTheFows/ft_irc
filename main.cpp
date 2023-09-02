@@ -1,14 +1,12 @@
 #include "Server.hpp"
 
-
-
 int main(int ac, char* av[]){
     if (ac != 3) {
         std::cerr << "Usage: ./ircserv [port] [password]";
         return 0;
     }
     try {
-        Server test(getHostIpAddress(), parsing(av[1]), av[2]);
+        Server test(getHostIpAddress(), parsing(av[1]), trim(av[2]));
         test.run();
     }
     catch (std::exception& e){

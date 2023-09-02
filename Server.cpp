@@ -166,6 +166,7 @@ bool Server::checkCommands(Client& client, std::string buffer) {
 
 bool Server::checkLoginCommands(Client& client, std::string buffer) {
     std::vector<std::string> arguments = splitString(buffer);
+
     if (arguments.empty()) return true;
     else if (tolower(trim(arguments[0])) == "pass") {
         checkPassword(client, arguments);
