@@ -4,8 +4,11 @@ std::vector<std::string> splitString(const std::string& str) {
     std::vector<std::string> tokens;
     std::istringstream inputStringStream(str);
     std::string token;
-    while (inputStringStream >> token)
-        tokens.push_back(token);
+    while (inputStringStream >> token) {
+        std::size_t spacesCount = token.find_first_not_of(" \t");
+        std::string tokenWithSpaces = std::string(spacesCount, ' ') + token;
+        tokens.push_back(tokenWithSpaces);
+    }
     return tokens;
 }
 
@@ -59,6 +62,21 @@ int parsing(const std::string& str) {
     }
 
     return port;
+}
+
+std::string trim(const std::string& str) {
+    // Find the first non-space character from the beginning
+    std::size_t start = 0;
+    while (start < str.length() && std::isspace(str[start]))
+        ++start;
+
+    // Find the first non-space character from the end
+    std::size_t end = str.length();
+    while (end > start && std::isspace(str[end - 1]))
+        --end;
+
+    // Return the trimmed substring
+    return str.substr(start, end - start);
 }
 
 std::string removeTrailingWhitespace(const std::string& str) {
