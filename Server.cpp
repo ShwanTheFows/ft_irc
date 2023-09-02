@@ -156,10 +156,8 @@ bool Server::checkCommands(Client& client, std::string buffer) {
 
     it = this->cmdMap.find(tolower(arguments[0]));
 
-    if (it == cmdMap.end()){
-        std::cout << "dkhlt" <<std::endl;
+    if (it == cmdMap.end())
         return false;
-    }
     else {
         (this->*(it->second))(client, arguments);
         return true;
@@ -169,16 +167,16 @@ bool Server::checkCommands(Client& client, std::string buffer) {
 bool Server::checkLoginCommands(Client& client, std::string buffer) {
     std::vector<std::string> arguments = splitString(buffer);
     if (arguments.empty()) return true;
-    else if (tolower(arguments[0]) == "pass") {
+    else if (tolower(trim(arguments[0])) == "pass") {
         checkPassword(client, arguments);
         return true;
-    } else if (tolower(arguments[0]) == "nick") {
+    } else if (tolower(trim(arguments[0])) == "nick") {
         if (!client.logged)
             client.ServerToClientPrefix(ERR_NOTREGISTERED(client.getNickName()));
         else
             checkNickName(client, arguments);
         return true;
-    } else if (tolower(arguments[0]) == "user") {
+    } else if (tolower(trim(arguments[0])) == "user") {
         if (!client.logged)
             client.ServerToClientPrefix(ERR_NOTREGISTERED(client.getNickName()));
         else
@@ -192,9 +190,9 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
     if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getPassWord().empty() && this->password.length() != 0) {
-        if (arguments[1] != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
-        else if (arguments[1] == this->password) {
-            client.setPassWord(arguments[1]);
+        if (trim(arguments[1]) != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
+        else if (trim(arguments[1]) == this->password) {
+            client.setPassWord(trim(arguments[1]));
             client.logged = true;
         }
     }
@@ -205,15 +203,15 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
     else if (client.getNickName().empty()) {
-        if (!isValidNickname(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
+        if (!isValidNickname(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {
             for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
-                if (it->second.getNickName() == arguments[1]) {
+                if (it->second.getNickName() == trim(arguments[1])) {
                     client.ServerToClientPrefix(ERR_NICKCOLLISION(client.getNickName()));
                     return ;
                 }
             }
-            client.setNickName(arguments[1]);
+            client.setNickName(trim(arguments[1]));
             if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
                 client.isRegistered = true;
                 client.welcome(timeOfCreation);
@@ -228,8 +226,8 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
     else if (client.getUserName().empty()) {
-        if (!isValidUsername(arguments[1])) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
-        else client.setUserName(arguments[1]);
+        if (!isValidUsername(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
+        else client.setUserName(trim(arguments[1]));
         client.setRealName(joinVectorFromIndex(arguments, 4));
         if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
             client.isRegistered = true;
@@ -247,7 +245,7 @@ void Server::disconnect() {
 
 void Server::join(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (!isValidChannelName(arguments[1])) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
+    else if (!isValidChannelName(trim(arguments[1]))) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
     else {
         //your code
     }
@@ -259,7 +257,10 @@ void Server::part(Client& client, std::vector<std::string>& arguments) {(void)cl
 
 void Server::notice(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
-void Server::privmsg(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
+    if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    //else if (arguments.size() >= 2 && arguments[1][0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT (client.getNickName()));
+}
 
 void Server::quit(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
