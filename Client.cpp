@@ -40,6 +40,8 @@ void Client::setPassWord(std::string passwd) {this->password = passwd;}
 
 void Client::setServerHostName(std::string hostname) {this->serverHostName = hostname;}
 
+void Client::setOp(bool change) { this->ope = change;}
+
 std::string Client::getUserName(void) const {return this->userName;}
 
 std::string Client::getNickName(void) const {return this->nickName;}
@@ -53,6 +55,8 @@ int Client::getClientSocket(void) const {return this->clientSocket;}
 std::string Client::getPassWord(void) const {return this->password;}
 
 std::string Client::getServerHostName(void) const {return this->serverHostName;}
+
+bool Client::isOperator(void) const {return this->ope;}
 
 const std::string Client::getJoiningTime(void) const {
     std::stringstream ss;

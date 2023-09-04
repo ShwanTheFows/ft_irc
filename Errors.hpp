@@ -51,5 +51,6 @@
 #define ERR_NOTREGISTERED(nick)                    "451 " + nick + " :You have not registered"
 #define ERR_NORECIPIENT(nick, cmd)                    "411 " + nick + " :No recipient given (" + cmd + ")"
 #define ERR_TOOMANYTARGETS(target)                    "407 " + target + " :Duplicate recipients. No message delivered"
+#define USR_JOIN(nick1,channel)                         ":"+nick1 + " " + channel
 
 #endif

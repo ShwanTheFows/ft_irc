@@ -25,5 +25,6 @@ void Server::quit(Client& client, std::vector<std::string>& arguments) {
             break;
         }
     }
+    std::cout << client.getNickName() << " left the server." << std::endl;
     close(client.getClientSocket());
 }

@@ -30,6 +30,7 @@ class Client {
         std::string realName;
         std::string password;
         std::string serverHostName;
+        bool ope;
     public:
         std::time_t timeJoined;
         int clientSocket;
@@ -54,6 +55,7 @@ class Client {
         void setClientSocket(int socket);
         void setPassWord(std::string passwd);
         void setServerHostName(std::string hostname);
+        void setOp(bool change);
 
         std::string getUserName(void) const;
         std::string getNickName(void) const;
@@ -64,6 +66,7 @@ class Client {
         std::string getPassWord(void) const;
         std::string getPrefixClient(void) const;
         const std::string getJoiningTime(void) const;
+        bool isOperator(void) const;
 
         void ClientToClientPrefix(std::string message);
         void ServerToClientPrefix(std::string message);

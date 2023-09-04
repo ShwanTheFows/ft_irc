@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "Client.hpp"
+#include "Channel.hpp"
 
 class Server {
     private:
@@ -17,12 +17,14 @@ class Server {
         void handleClient(int clientSocket);
         void disconnect(void);
     public:
+        size_t maxNumOfClients;
+        std::vector<channel> channels;
         std::string timeOfCreation;
         typedef void (Server::*cmd)(Client& client, std::vector<std::string>& arguments);
         std::map<std::string, cmd> cmdMap;
 
         Server();
-        Server(std::string ip,int port, std::string password);
+        Server(std::string ip,int port, std::string password, size_t num);
         Server(const Server& copy);
         ~Server();
 
@@ -64,7 +66,6 @@ class Server {
         void invite(Client& client, std::vector<std::string>& arguments);
         void mode(Client& client, std::vector<std::string>& arguments);
         void oper(Client& client, std::vector<std::string>& arguments);
-        void wallops(Client& client, std::vector<std::string>& arguments);
         void whois(Client& client, std::vector<std::string>& arguments);
 };
 

@@ -2,7 +2,7 @@
 
 Server::Server() {}
 
-Server::Server(std::string ip, int port, std::string password) : ip(ip), port(port), password(password) {}
+Server::Server(std::string ip, int port, std::string password, size_t num) : ip(ip), port(port), password(password), maxNumOfClients(num) {}
 
 Server::Server(const Server& copy) {*this = copy;}
 
@@ -30,12 +30,12 @@ std::string Server::getIp(void) const {return this->ip;}
 
 void Server::cmdMapinit(void) {
     std::string cmd_strings[] = {"join", "kick", "part", "notice", "privmsg", "quit"
-    , "topic", "names", "list", "invite", "mode", "oper", "wallops", "whois"};
+    , "topic", "names", "list", "invite", "mode", "oper", "whois"};
     cmd cmd_ptrs[] = {&Server::join, &Server::kick, 
     &Server::part, &Server::notice, &Server::privmsg, 
     &Server::quit, &Server::topic, &Server::names, 
     &Server::list, &Server::invite, &Server::mode, 
-    &Server::oper, &Server::wallops, &Server::whois};
+    &Server::oper, &Server::whois};
     int num_cmds = sizeof(cmd_ptrs) / sizeof(cmd);
 
     for (int i = 0; i < num_cmds; i++)
@@ -69,6 +69,9 @@ void Server::run() {
 
             if (clientSocket == -1) {
                 std::cout << "Accept failed!" << std::endl;
+                continue;
+            } else if (clients.size() >= this->maxNumOfClients) {
+                std::cout << "Maximum number of clients reached!" << std::endl;
                 continue;
             }
 
@@ -169,7 +172,8 @@ bool Server::checkLoginCommands(Client& client, std::string buffer) {
     std::vector<std::string> arguments = splitString(buffer);
 
     if (arguments.empty()) return true;
-    else if (tolower(trim(arguments[0])) == "pass") {
+    if (this->password.empty()) client.logged = true;
+    if (tolower(trim(arguments[0])) == "pass") {
         checkPassword(client, arguments);
         return true;
     } else if (tolower(trim(arguments[0])) == "nick") {
@@ -189,7 +193,11 @@ bool Server::checkLoginCommands(Client& client, std::string buffer) {
 }
 
 void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    if (this->password.empty()) {
+        client.logged = true;
+        return ;
+    }
+    else if (arguments.size() > 2 || arguments.size() == 1) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getPassWord().empty() && this->password.length() != 0) {
         if (trim(arguments[1]) != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
@@ -214,7 +222,7 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
                 }
             }
             client.setNickName(trim(arguments[1]));
-            if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
+            if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
                 client.isRegistered = true;
                 client.welcome(timeOfCreation);
             }
@@ -231,7 +239,7 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
         if (!isValidUsername(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else client.setUserName(trim(arguments[1]));
         client.setRealName(joinVectorFromIndex(arguments, 4));
-        if (!client.getPassWord().empty() && !client.getNickName().empty() && !client.getUserName().empty()) {
+        if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
             client.isRegistered = true;
             client.welcome(timeOfCreation);
         }
@@ -245,25 +253,17 @@ void Server::disconnect() {
     this->clients.clear();
 }
 
-void Server::sendMessageToClient(Client& sender, const std::string& message)
-{
+void Server::sendMessageToClient(Client& sender, const std::string& message) {
     std::string msg = ":" + sender.getPrefixClient() + message + "\r\n";
     send(sender.getClientSocket(), msg.c_str(), msg.length(), 0);
     msg.clear();
 }
 
+
 void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::part(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::notice(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::list(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
-void Server::mode(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
 void Server::oper(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::wallops(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
