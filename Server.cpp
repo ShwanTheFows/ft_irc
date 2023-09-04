@@ -276,9 +276,9 @@ bool Server::doesChannelExist(std::string name) {
     return false;
 }
 
-bool Server::doesClientExistInChannel(channel* ch, std::string clientName) {
-    if (ch->isempty) return false;
-    for (std::vector<Client *>::iterator it = ch->clients.begin(); it != ch->clients.end(); ++it) {   
+bool Server::doesClientExistInChannel(channel& ch, std::string clientName) {
+    if (ch.isempty) return false;
+    for (std::vector<Client *>::iterator it = ch.clients.begin(); it != ch.clients.end(); ++it) {   
         if ((**it).getNickName() == clientName)
             return true;
     }

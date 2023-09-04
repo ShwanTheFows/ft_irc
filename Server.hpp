@@ -55,7 +55,7 @@ class Server {
         void sendMessageToClient(Client& sender, const std::string& message);
         void sendToChannelMembers(channel* channel, Client& client, std::string command);
         bool doesChannelExist(std::string name);
-        bool doesClientExistInChannel(channel* ch, std::string clientName);
+        bool doesClientExistInChannel(channel& ch, std::string clientName);
         channel* getChannel(std::string channelName);
 
         void join(Client& client, std::vector<std::string>& arguments);
