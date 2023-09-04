@@ -25,15 +25,15 @@ void    printJoinInfo(Client &client, channel& channel, std::string clientNames)
 }
 
 void Server::join(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    if (arguments.size() < 2 || arguments.size() > 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (!isValidChannelName(trim(arguments[1]))) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
     else {
         std::vector<channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (it->getchannelName() == trim(arguments[1])) {
-                if(it->getPrivate() == false){
+                if(it->getPrivate() == true){
                     if (it->sethaveKey()) {
-                        if(it->getKey() == trim(arguments[3])) {
+                        if(arguments.size() == 3 && it->getKey() == trim(arguments[2])) {
                             if (!it->addMember(client)) return ;
                             sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
                             printJoinInfo(client, *it, it->getClientNames());

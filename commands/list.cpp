@@ -11,10 +11,6 @@ void Server::list(Client& client, std::vector<std::string>& arguments) {
             client.ServerToClientPrefix(RPL_LIST(client.getNickName(), it->getchannelName(), ss.str(), it->getTopic()));
         }
         client.ServerToClientPrefix(RPL_LISTEND(client.getNickName()));
-        ///////////////change this
-        if (it == channels.end()) {
-            client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(),trim(arguments[1])));
-        }
     } else {
         //your code here (use '*' as wildcard)
     }

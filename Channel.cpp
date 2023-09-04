@@ -8,11 +8,10 @@ channel::channel(std::string name, Client& member) : _name(name), isempty(false)
     haveKey(false);
     clients.push_back(&member);
 }
-channel::channel(std::string name, Client& member, std::string key) : _name(name), isempty(false)
+channel::channel(std::string name, Client& member, std::string key) : _name(name), _key(key), isempty(false)
 {
     member.setOp(true);
     haveKey(true);
-    setKey(key);
     clients.push_back(&member);
 }
 
@@ -86,4 +85,24 @@ void channel::removeMember(std::string clientName) {
             return ;
         }
     }
+}
+
+void channel::boolTopic(bool settop){
+    this->haveTopic = settop;
+}
+
+void channel::haveLimit(bool change){
+    this->Ulimit = change;
+}
+
+ int channel::getLimit()
+ {
+    return(this->userLimit);
+ }
+void channel::setLimit(int lim){
+    this->userLimit = lim;
+}
+bool channel::hasTopic()
+{
+    return(this->haveTopic);
 }

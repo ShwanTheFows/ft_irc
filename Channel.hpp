@@ -10,8 +10,10 @@ class channel{
         std::string _topic;
         bool havekey;
         std::string _key;
-        //bool Ulimit;
+        int userLimit;
+        bool Ulimit;
         bool isPrivate;
+        bool haveTopic;
     public:
         bool isempty;
         std::vector<Client *> clients;
@@ -30,6 +32,11 @@ class channel{
         void setPrivate(bool prv);
         std::string getClientNames(void);
         void removeMember(std::string clientName);
+        int getLimit();
+        void setLimit(int lim);
+        void boolTopic(bool settop);
+        bool hasTopic();
+        void haveLimit(bool change);
 };
 
 

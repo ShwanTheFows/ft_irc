@@ -268,6 +268,7 @@ void Server::sendToChannelMembers(channel* channel, Client& client, std::string 
 }
 
 bool Server::doesChannelExist(std::string name) {
+    if (channels.size() == 0) return false;
     for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
         if (it->getchannelName() == name) {
             return true;
