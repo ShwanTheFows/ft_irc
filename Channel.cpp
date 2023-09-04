@@ -1,12 +1,14 @@
 #include "Channel.hpp"
 
-channel::channel(std::string name, Client& member) : _name(name)
+channel::channel() {this->isempty = true;}
+
+channel::channel(std::string name, Client& member) : _name(name), isempty(false)
 {
     member.setOp(true);
     haveKey(false);
     clients.push_back(&member);
 }
-channel::channel(std::string name, Client& member, std::string key) : _name(name)
+channel::channel(std::string name, Client& member, std::string key) : _name(name), isempty(false)
 {
     member.setOp(true);
     haveKey(true);
@@ -19,18 +21,19 @@ std::string channel::getchannelName(void)
     return(this->_name);
 }
 
-void channel::addMember(Client& member)
+bool channel::addMember(Client& member)
 {
-        std::vector<Client *>::iterator c_it;
-        for (c_it = clients.begin(); c_it != clients.end(); ++c_it) {
-            if ((*c_it)->getNickName() == member.getNickName()) {
-                member.ServerToClientPrefix(ERR_USERONCHANNEL(member.getNickName(), getchannelName()));
-                break;
-            }
+    std::vector<Client *>::iterator c_it;
+    for (c_it = clients.begin(); c_it != clients.end(); ++c_it) {
+        if ((*c_it)->getNickName() == member.getNickName()) {
+            member.ServerToClientPrefix(ERR_USERONCHANNEL(member.getNickName(), getchannelName()));
+            return false;
         }
-         if (c_it == clients.end()) {
-            clients.push_back(&member);
-         }
+    }
+    if (c_it == clients.end()) {
+        clients.push_back(&member);
+    }
+    return true;
 }
 
 std::string channel::getTopic(){
@@ -74,4 +77,13 @@ std::string channel::getClientNames(void) {
         result += ' ';
     }
     return result;
+}
+
+void channel::removeMember(std::string clientName) {
+    for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
+        if ((**myit).getNickName() == clientName) {
+            clients.erase(myit);
+            return ;
+        }
+    }
 }

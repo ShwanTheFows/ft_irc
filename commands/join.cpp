@@ -34,16 +34,16 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                 if(it->getPrivate() == false){
                     if (it->sethaveKey()) {
                         if(it->getKey() == trim(arguments[3])) {
-                            it->addMember(client);
-                            sendToChannelMembers(*it, client, "JOIN :" + it->getchannelName());
+                            if (!it->addMember(client)) return ;
+                            sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
                             printJoinInfo(client, *it, it->getClientNames());
                         }
                         else
                             std::cout << "wrong password!" << std::endl;
                     }
                     else {
-                        it->addMember(client);
-                        sendToChannelMembers(*it, client, "JOIN :" + it->getchannelName());
+                        if (!it->addMember(client)) return ;
+                        sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
                         printJoinInfo(client, *it, it->getClientNames());
                     }
                 }
@@ -58,7 +58,7 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                     channels.push_back(channel(trim(arguments[1]),client,trim(arguments[2])));
                 else if (arguments.size() ==  2)
                     channels.push_back(channel(trim(arguments[1]),client));
-                sendToChannelMembers(channels[channels.size()-1], client, "JOIN :" + channels[channels.size()-1].getchannelName());
+                sendToChannelMembers(&channels[channels.size()-1], client, "JOIN :" + channels[channels.size()-1].getchannelName());
                 printJoinInfo(client, channels[channels.size()-1], channels[channels.size()-1].getClientNames());
         }
     }

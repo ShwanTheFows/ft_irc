@@ -30,12 +30,11 @@ std::string Server::getIp(void) const {return this->ip;}
 
 void Server::cmdMapinit(void) {
     std::string cmd_strings[] = {"join", "kick", "part", "notice", "privmsg", "quit"
-    , "topic", "names", "list", "invite", "mode", "oper", "whois"};
+    , "topic", "names", "list", "invite", "mode", "whois"};
     cmd cmd_ptrs[] = {&Server::join, &Server::kick, 
     &Server::part, &Server::notice, &Server::privmsg, 
     &Server::quit, &Server::topic, &Server::names, 
-    &Server::list, &Server::invite, &Server::mode, 
-    &Server::oper, &Server::whois};
+    &Server::list, &Server::invite, &Server::mode, &Server::whois};
     int num_cmds = sizeof(cmd_ptrs) / sizeof(cmd);
 
     for (int i = 0; i < num_cmds; i++)
@@ -259,18 +258,39 @@ void Server::sendMessageToClient(Client& sender, const std::string& message) {
     msg.clear();
 }
 
-void Server::sendToChannelMembers(channel& channel, Client& client, std::string command)
-{
+void Server::sendToChannelMembers(channel* channel, Client& client, std::string command) {
     size_t i = 0;
     std::string message = ":" + client.getPrefixClient() + command + "\r\n";
-    while (i < channel.clients.size()) {
-        send(channel.clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
+    while (i < channel->clients.size()) {
+        send(channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
         i++;
     }
 }
 
-void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
+bool Server::doesChannelExist(std::string name) {
+    for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->getchannelName() == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Server::doesClientExistInChannel(channel* ch, std::string clientName) {
+    if (ch->isempty) return false;
+    for (std::vector<Client *>::iterator it = ch->clients.begin(); it != ch->clients.end(); ++it) {   
+        if ((**it).getNickName() == clientName)
+            return true;
+    }
+    return false;
+}
+
+channel* Server::getChannel(std::string channelName) {
+    for (std::vector<channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++) {
+        if (channelName == it->getchannelName())
+            return &(*it);
+    }
+    return NULL;
+}
 
 void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::oper(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
