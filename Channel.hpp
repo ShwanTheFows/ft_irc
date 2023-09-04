@@ -13,11 +13,11 @@ class channel{
         //bool Ulimit;
         bool isPrivate;
     public:
+        std::vector<Client *> clients;
         channel(std::string name, Client& member);
         channel(std::string name, Client& member, std::string key);
         std::string getTopic(void);
         void setTopic(std::string subj);
-        std::vector<Client *> clients;
         std::string getchannelName(void);
         void addMember(Client& member);
         void setKey(std::string key);
@@ -26,7 +26,7 @@ class channel{
         void haveKey(bool keyVal);
         bool getPrivate();
         void setPrivate(bool prv);
-
+        std::string getClientNames(void);
 };
 
 

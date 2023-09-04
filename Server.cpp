@@ -259,10 +259,17 @@ void Server::sendMessageToClient(Client& sender, const std::string& message) {
     msg.clear();
 }
 
+void Server::sendToChannelMembers(channel& channel, Client& client, std::string command)
+{
+    size_t i = 0;
+    std::string message = ":" + client.getPrefixClient() + command + "\r\n";
+    while (i < channel.clients.size()) {
+        send(channel.clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
+        i++;
+    }
+}
 
 void Server::kick(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
-
-void Server::list(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 
 void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
 

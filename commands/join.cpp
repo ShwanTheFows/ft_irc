@@ -16,6 +16,14 @@
 //     return nullptr;
 // }
 
+void    printJoinInfo(Client &client, channel& channel, std::string clientNames)
+{
+    if (!channel.getTopic().empty())
+        client.ServerToClientPrefix(RPL_TOPIC(client.getNickName(), channel.getchannelName(), channel.getTopic()));
+    client.ServerToClientPrefix(RPL_NAMREPLY(client.getNickName(), channel.getchannelName(), clientNames));
+    client.ServerToClientPrefix(RPL_ENDOFNAMES(client.getNickName(), channel.getchannelName()));
+}
+
 void Server::join(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (!isValidChannelName(trim(arguments[1]))) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
@@ -25,13 +33,19 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
             if (it->getchannelName() == trim(arguments[1])) {
                 if(it->getPrivate() == false){
                     if (it->sethaveKey()) {
-                        if(it->getKey() == trim(arguments[3]))
+                        if(it->getKey() == trim(arguments[3])) {
                             it->addMember(client);
+                            sendToChannelMembers(*it, client, "JOIN :" + it->getchannelName());
+                            printJoinInfo(client, *it, it->getClientNames());
+                        }
                         else
                             std::cout << "wrong password!" << std::endl;
                     }
-                    else
+                    else {
                         it->addMember(client);
+                        sendToChannelMembers(*it, client, "JOIN :" + it->getchannelName());
+                        printJoinInfo(client, *it, it->getClientNames());
+                    }
                 }
                 else
                    client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));
@@ -44,7 +58,8 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                     channels.push_back(channel(trim(arguments[1]),client,trim(arguments[2])));
                 else if (arguments.size() ==  2)
                     channels.push_back(channel(trim(arguments[1]),client));
-                client.ServerToClientPrefix(USR_JOIN(client.getNickName(),channels[channels.size()-1].getchannelName()));
+                sendToChannelMembers(channels[channels.size()-1], client, "JOIN :" + channels[channels.size()-1].getchannelName());
+                printJoinInfo(client, channels[channels.size()-1], channels[channels.size()-1].getClientNames());
         }
     }
 }

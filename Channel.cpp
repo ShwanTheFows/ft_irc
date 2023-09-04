@@ -65,3 +65,13 @@ void channel::setPrivate(bool prv)
 {
     this->isPrivate = prv;
 }
+
+std::string channel::getClientNames(void) {
+    std::string result = "";
+    for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
+        if ((**myit).isOperator()) result += '@' + (**myit).getNickName();
+        else result += (**myit).getNickName();
+        result += ' ';
+    }
+    return result;
+}

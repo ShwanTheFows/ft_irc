@@ -53,6 +53,7 @@ class Server {
         void checkUserCommand(Client& client, std::vector<std::string>& arguments);
         bool checkCommands(Client& client, std::string buffer);
         void sendMessageToClient(Client& sender, const std::string& message);
+        void sendToChannelMembers(channel& channel, Client& client, std::string command);
 
         void join(Client& client, std::vector<std::string>& arguments);
         void kick(Client& client, std::vector<std::string>& arguments);

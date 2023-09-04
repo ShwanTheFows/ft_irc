@@ -16,7 +16,7 @@ void Server::notice(Client& client, std::vector<std::string>& arguments) {
     } else if (trim(arguments[1])[0] == '#') {
         std::vector<channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
-            if (it->getchannelName() == arguments[1]) {
+            if (it->getchannelName() == trim(arguments[1])) {
                  for (std::vector<Client *>::iterator myit = it->clients.begin(); myit != it->clients.end(); ++myit) {   
                         sendMessageToClient(**myit, "NOTICE " + (**myit).getNickName() + " :" + joinVectorFromIndex(arguments, 2));
                 }
