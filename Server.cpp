@@ -162,7 +162,7 @@ void Server::handleClient(int clientSocket) {
         }
     } else if (bytesRead == 0) {
         std::map<int, Client>::iterator it = this->clients.find(clientSocket);
-        std::cout << "The client " << it->second.getNickName() << " has been disconnected." << std::endl;
+        std::cout << "A client has been disconnected." << std::endl;
         // Remove the client socket from the map
         if (channels.size() > 0) {
             for (std::vector<Channel>::iterator ch_it = channels.begin(); ch_it != channels.end(); ch_it++) {
@@ -214,7 +214,10 @@ bool Server::checkLoginCommands(Client& client, std::string buffer) {
             checkUserCommand(client, arguments);
         return true;
     }
-    else return false;
+    else{
+        client.ServerToClientPrefix(ERR_UNKNOWNCOMMAND(client.getNickName(), buffer));
+        return false;
+    }
 }
 
 void Server::checkPassword(Client& client, std::vector<std::string>& arguments) {
