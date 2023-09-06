@@ -10,8 +10,7 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
     else if (trim(arguments[1])[0] != '#') {
         for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
             if (it->second.getNickName() == trim(arguments[1])) {
-                Client clientCopy = it->second;
-                sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), clientCopy.getClientSocket());
+                sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), it->second.getClientSocket());
                 return ;
             }
         }
