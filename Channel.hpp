@@ -19,9 +19,14 @@ class channel{
         std::vector<Client *> clients;
         std::vector<std::string> operators;
         std::vector<std::string> inviteList;
+        
         channel();
         channel(std::string name, Client& member);
         channel(std::string name, Client& member, std::string key);
+        channel(const channel& other);
+        ~channel();
+        channel& operator=(const channel& other);
+
         std::string getTopic(void);
         void setTopic(std::string subj);
         std::string getchannelName(void);

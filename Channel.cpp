@@ -4,7 +4,6 @@ channel::channel() {this->isempty = true;}
 
 channel::channel(std::string name, Client& member) : _name(name), isempty(false)
 {
-    member.setOp(true);
     this->isPrivate = false;
     haveKey(false);
     clients.push_back(&member);
@@ -12,13 +11,48 @@ channel::channel(std::string name, Client& member) : _name(name), isempty(false)
 }
 channel::channel(std::string name, Client& member, std::string key) : _name(name), _key(key), isempty(false)
 {
-    member.setOp(true);
     this->isPrivate = false;
     haveKey(true);
     clients.push_back(&member);
     operators.push_back(member.getNickName());
 }
 
+channel::channel(const channel& other) {*this = copy;}
+
+channel& channel::operator=(const channel& other) {
+    if (this != &other) {
+        _name = other._name;
+        _topic = other._topic;
+        havekey = other.havekey;
+        _key = other._key;
+        userLimit = other.userLimit;
+        Ulimit = other.Ulimit;
+        isPrivate = other.isPrivate;
+        haveTopic = other.haveTopic;
+        isempty = other.isempty;
+
+        clients.clear();
+        std::vector<Client*>::const_iterator itClient;
+        for (itClient = other.clients.begin(); itClient != other.clients.end(); ++itClient) {
+            clients.push_back(*itClient);
+        }
+
+        operators.clear();
+        std::vector<std::string>::const_iterator itOp;
+        for (itOp = other.operators.begin(); itOp != other.operators.end(); ++itOp) {
+            operators.push_back(*itOp);
+        }
+
+        inviteList.clear();
+        std::vector<std::string>::const_iterator itInvite;
+        for (itInvite = other.inviteList.begin(); itInvite != other.inviteList.end(); ++itInvite) {
+            inviteList.push_back(*itInvite);
+        }
+    }
+    return *this;
+}
+
+channel::~channel() {}
 std::string channel::getchannelName(void)
 {
     return(this->_name);

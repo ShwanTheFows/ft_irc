@@ -16,7 +16,12 @@ Client& Client::operator=(const Client& right) {
         this->nickName = right.getNickName();
         this->hostName = right.getHostName();
         this->realName = right.getRealName();
+        this->password = right.getPassWord();
         this->clientSocket = right.getClientSocket();
+        this->serverHostName = right.getServerHostName();
+        this->timeJoined = right.timeJoined;
+        this->logged = right.logged;
+        this->isRegistered = right.isRegistered;
     }
 
     return *this;
@@ -40,7 +45,6 @@ void Client::setPassWord(std::string passwd) {this->password = passwd;}
 
 void Client::setServerHostName(std::string hostname) {this->serverHostName = hostname;}
 
-void Client::setOp(bool change) { this->ope = change;}
 
 std::string Client::getUserName(void) const {return this->userName;}
 
@@ -56,7 +60,6 @@ std::string Client::getPassWord(void) const {return this->password;}
 
 std::string Client::getServerHostName(void) const {return this->serverHostName;}
 
-bool Client::isOperator(void) const {return this->ope;}
 
 const std::string Client::getJoiningTime(void) const {
     std::stringstream ss;
