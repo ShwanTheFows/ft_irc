@@ -86,11 +86,9 @@ void Client::mySend(std::string str) {
 }
 
 void Client::welcome(std::string timeOfCreation) {
-    //if (isGuest && !getNickName().empty() && !getRealName().empty() && !getUserName().empty())
     if (!this->nickName.empty() && !this->userName.empty())
     {
         std::cout << this->nickName << " has registered!" << std::endl;
-        //isGuest = false;
         isRegistered = true;
         ServerToClientPrefix(RPL_WELCOME(this->nickName, "IRC", this->userName, this->hostName));
         ServerToClientPrefix(RPL_YOURHOST(this->nickName, this->hostName));
