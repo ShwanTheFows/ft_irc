@@ -151,7 +151,7 @@ void Server::handleClient(int clientSocket) {
     memset(buffer, 0, bufsize);  // Clear the buffer
 
     // Receive message from the client
-    int bytesRead = recv(clientSocket, buffer, bufsize - 2, 0);
+    int bytesRead = recv(clientSocket, buffer, bufsize, 0);
 
     if (bytesRead > 0) {
         removeTrailingNewline(buffer);
