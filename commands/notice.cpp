@@ -7,6 +7,7 @@ void Server::notice(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (arguments.size() >= 3 && trim(arguments[1])[0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT(client.getNickName(), joinVectorFromIndex(arguments, 0)));
     else if (arguments.size() >= 3 && trim(arguments[2])[0] != ':') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (arguments.size() > 2 && trim(arguments[2])[0] == ':' && trim(arguments[2]).length() == 1) client.ServerToClientPrefix(ERR_NOTEXTTOSEND(client.getNickName()));
     else if (trim(arguments[1])[0] != '#') {
         for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
             if (it->second.getNickName() == trim(arguments[1])) {
