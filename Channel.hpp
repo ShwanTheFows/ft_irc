@@ -17,6 +17,7 @@ class channel{
     public:
         bool isempty;
         std::vector<Client *> clients;
+        std::vector<std::string> operators;
         channel();
         channel(std::string name, Client& member);
         channel(std::string name, Client& member, std::string key);
@@ -37,6 +38,9 @@ class channel{
         void boolTopic(bool settop);
         bool hasTopic();
         void haveLimit(bool change);
+        void removeOp(std::string name);
+        void setOperators(std::string newOperators);
+        bool isOp(std::string name);
 };
 
 

@@ -5,14 +5,18 @@ channel::channel() {this->isempty = true;}
 channel::channel(std::string name, Client& member) : _name(name), isempty(false)
 {
     member.setOp(true);
+    this->isPrivate = false;
     haveKey(false);
     clients.push_back(&member);
+    operators.push_back(member.getNickName());
 }
 channel::channel(std::string name, Client& member, std::string key) : _name(name), _key(key), isempty(false)
 {
     member.setOp(true);
+    this->isPrivate = false;
     haveKey(true);
     clients.push_back(&member);
+    operators.push_back(member.getNickName());
 }
 
 std::string channel::getchannelName(void)
@@ -71,7 +75,7 @@ void channel::setPrivate(bool prv)
 std::string channel::getClientNames(void) {
     std::string result = "";
     for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
-        if ((**myit).isOperator()) result += '@' + (**myit).getNickName();
+        if (this->isOp((**myit).getNickName())) result += '@' + (**myit).getNickName();
         else result += (**myit).getNickName();
         result += ' ';
     }
@@ -105,4 +109,29 @@ void channel::setLimit(int lim){
 bool channel::hasTopic()
 {
     return(this->haveTopic);
+}
+
+void channel::removeOp(std::string name)
+{
+    if (operators.size() == 0) return ;
+    std::vector<std::string>::iterator it = operators.begin();
+    for(;it != operators.end();it++)
+        if (name == *it)
+            operators.erase(it);
+}
+
+void channel::setOperators(std::string newOperators) {
+    if (this->isOp(newOperators)) return ;
+    else operators.push_back(newOperators);
+}
+
+bool channel::isOp(std::string name){
+    if (operators.size() == 0) return false;
+    std::vector<std::string>::iterator it = operators.begin();
+    for(;it != operators.end();it++)
+        if (name == *it)
+            return true;
+    if(it == operators.end())
+        return false;
+return false;
 }

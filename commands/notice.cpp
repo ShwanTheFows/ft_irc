@@ -1,6 +1,7 @@
 #include "../Server.hpp"
 
 void Server::notice(Client& client, std::vector<std::string>& arguments) {
+    channel* ch = getChannel(trim(arguments[1]));
     if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (arguments.size() >= 3 && trim(arguments[1])[0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT(client.getNickName(), joinVectorFromIndex(arguments, 0)));
     else if (arguments.size() >= 3 && trim(arguments[2])[0] != ':') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
@@ -14,19 +15,8 @@ void Server::notice(Client& client, std::vector<std::string>& arguments) {
         }
         client.ServerToClientPrefix(ERR_NOSUCHNICK(trim(arguments[1])));
     } else if (trim(arguments[1])[0] == '#') {
-        std::vector<channel>::iterator it;
-        for (it = channels.begin(); it != channels.end(); ++it) {
-            if (it->getchannelName() == trim(arguments[1])) {
-                 for (std::vector<Client *>::iterator myit = it->clients.begin(); myit != it->clients.end(); ++myit) {   
-                        sendMessageToClient(**myit, "NOTICE " + (**myit).getNickName() + " :" + joinVectorFromIndex(arguments, 2));
-                }
-                return ;
-            }
-        }
-        ///////////////change this
-        if (it == channels.end()) {
-            client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(),trim(arguments[1])));
-        }
-
+        if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
+        else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", trim(arguments[1])));
+        else sendToChannelMembers(ch, client, "NOTICE " + client.getNickName() + " :" + joinVectorFromIndex(arguments, 2));
     }
 }

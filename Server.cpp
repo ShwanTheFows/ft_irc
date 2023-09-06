@@ -258,9 +258,9 @@ void Server::sendMessageToClient(Client& sender, const std::string& message) {
     msg.clear();
 }
 
-void Server::sendToChannelMembers(channel* channel, Client& client, std::string command) {
+void Server::sendToChannelMembers(channel* channel, Client& client, std::string msg) {
     size_t i = 0;
-    std::string message = ":" + client.getPrefixClient() + command + "\r\n";
+    std::string message = ":" + client.getPrefixClient() + msg + "\r\n";
     while (i < channel->clients.size()) {
         send(channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
         i++;
