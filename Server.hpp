@@ -52,7 +52,7 @@ class Server {
         void checkNickName(Client& client, std::vector<std::string>& arguments);
         void checkUserCommand(Client& client, std::vector<std::string>& arguments);
         bool checkCommands(Client& client, std::string buffer);
-        void sendMessageToClient(Client& sender, const std::string& message);
+        void sendMessageToClient(Client& sender, const std::string& message, int receiver);
         void sendToChannelMembers(channel* channel, Client& client, std::string msg);
         bool doesChannelExist(std::string name);
         bool doesClientExistInChannel(channel& ch, std::string clientName);

@@ -1,7 +1,6 @@
 #include "../Server.hpp"
 
-void    printJoinInfo(Client &client, channel& channel, std::string clientNames)
-{
+void    printJoinInfo(Client &client, channel& channel, std::string clientNames) {
     if (!channel.getTopic().empty())
         client.ServerToClientPrefix(RPL_TOPIC(client.getNickName(), channel.getchannelName(), channel.getTopic()));
     client.ServerToClientPrefix(RPL_NAMREPLY(client.getNickName(), channel.getchannelName(), clientNames));
@@ -25,12 +24,32 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                         else
                             client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
                     }
-                    else if (it->sethaveKey() && arguments.size() == 2) client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));
+                    else if (it->sethaveKey() && arguments.size() == 2) client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), it->getchannelName()));
                     else {
                         if (!it->addMember(client)) return ;
                         sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
                         printJoinInfo(client, *it, it->getClientNames());
                     }
+                }
+                else if (it->getPrivate() == true) {
+                    channel* ch = getChannel(trim(arguments[1]));
+                    if (ch->isInInviteList(client.getNickName())) {
+                        if (it->sethaveKey() && arguments.size() == 3) {
+                            if(arguments.size() == 3 && it->getKey() == trim(arguments[2])) {
+                                if (!it->addMember(client)) return ;
+                                sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
+                                printJoinInfo(client, *it, it->getClientNames());
+                            }
+                            else
+                                client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
+                        }
+                        else if (it->sethaveKey() && arguments.size() == 2) client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), it->getchannelName()));
+                        else {
+                            if (!it->addMember(client)) return ;
+                            sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
+                            printJoinInfo(client, *it, it->getClientNames());
+                        }
+                    } else client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));
                 }
                 else
                    client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));

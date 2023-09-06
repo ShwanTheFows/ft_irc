@@ -1,5 +1,5 @@
 NAME = ircserv
-FLAGS = c++ -Wall -Wextra -Werror -std=c++98
+FLAGS = c++ -Wall -Wextra -Werror -std=c++98 -fsanitize=address
 SRCS = main.cpp Server.cpp Client.cpp Utils.cpp Channel.cpp ./commands/invite.cpp ./commands/kick.cpp ./commands/list.cpp ./commands/part.cpp ./commands/mode.cpp ./commands/notice.cpp ./commands/join.cpp ./commands/privmsg.cpp ./commands/names.cpp ./commands/whois.cpp ./commands/quit.cpp ./commands/topic.cpp
 HPP = Server.hpp Client.hpp Errors.hpp Utils.hpp Channel.hpp
 OBJECTS = $(SRCS:.cpp=.o)

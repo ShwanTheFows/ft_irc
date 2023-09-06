@@ -26,6 +26,10 @@ std::string channel::getchannelName(void)
 
 bool channel::addMember(Client& member)
 {
+    if (this->Ulimit && (int)clients.size() >= this->userLimit) {
+        member.ServerToClientPrefix(ERR_CHANNELISFULL(member.getNickName(), getchannelName()));
+        return false;
+    }
     std::vector<Client *>::iterator c_it;
     for (c_it = clients.begin(); c_it != clients.end(); ++c_it) {
         if ((*c_it)->getNickName() == member.getNickName()) {
@@ -85,6 +89,10 @@ std::string channel::getClientNames(void) {
 void channel::removeMember(std::string clientName) {
     for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
         if ((**myit).getNickName() == clientName) {
+            if (this->isOp((**myit).getNickName()))
+                removeOp((**myit).getNickName());
+            if (this->isInInviteList((**myit).getNickName()))
+                removeFromInviteList((**myit).getNickName());
             clients.erase(myit);
             return ;
         }
@@ -115,9 +123,12 @@ void channel::removeOp(std::string name)
 {
     if (operators.size() == 0) return ;
     std::vector<std::string>::iterator it = operators.begin();
-    for(;it != operators.end();it++)
-        if (name == *it)
+    for(;it != operators.end();it++) {
+        if (name == *it) {
             operators.erase(it);
+            return ;
+        }
+    }
 }
 
 void channel::setOperators(std::string newOperators) {
@@ -140,4 +151,32 @@ std::string channel::getClientsSize(void) {
     std::stringstream ss;
     ss << this->clients.size();
     return ss.str();
+}
+
+void channel::addToInviteList(std::string clientName) {
+    if (this->inviteList.size() == 0) this->inviteList.push_back(clientName);
+    else {
+        for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
+            if (*it == clientName) return ;
+        }
+        this->inviteList.push_back(clientName);
+    }
+}
+
+void channel::removeFromInviteList(std::string clientName) {
+    if (this->inviteList.size() == 0) return ;
+    for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
+        if (*it == clientName) {
+            this->inviteList.erase(it);
+            return ;
+        }
+    }
+}
+
+bool channel::isInInviteList(std::string clientName) {
+    if (this->inviteList.size() == 0) return false;
+    for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
+        if (*it == clientName) return true;
+    }
+    return false;
 }

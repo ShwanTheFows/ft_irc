@@ -18,6 +18,7 @@ class channel{
         bool isempty;
         std::vector<Client *> clients;
         std::vector<std::string> operators;
+        std::vector<std::string> inviteList;
         channel();
         channel(std::string name, Client& member);
         channel(std::string name, Client& member, std::string key);
@@ -42,6 +43,9 @@ class channel{
         void setOperators(std::string newOperators);
         bool isOp(std::string name);
         std::string getClientsSize(void);
+        void addToInviteList(std::string clientName);
+        void removeFromInviteList(std::string clientName);
+        bool isInInviteList(std::string clientName);
 };
 
 

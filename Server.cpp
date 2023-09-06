@@ -74,7 +74,7 @@ void Server::run() {
                 continue;
             }
 
-            std::cout << "Accepted connection." << std::endl;
+            std::cout << "A client has connected!." << std::endl;
             this->clients[clientSocket] = Client(clientSocket);
             this->clients[clientSocket].setServerHostName(this->ip);
             this->clients[clientSocket].timeJoined = std::time(NULL);
@@ -144,10 +144,19 @@ void Server::handleClient(int clientSocket) {
                 clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), buffer));
         }
     } else if (bytesRead == 0) {
-        std::cout << "Client " << clientSocket << " disconnected." << std::endl;
-        close(clientSocket);
-        // Remove the client socket from the map
         std::map<int, Client>::iterator it = this->clients.find(clientSocket);
+        std::cout << "The client " << it->second.getNickName() << " has been disconnected." << std::endl;
+        // Remove the client socket from the map
+        if (channels.size() > 0) {
+            for (std::vector<channel>::iterator ch_it = channels.begin(); ch_it != channels.end(); ch_it++) {
+                if (doesClientExistInChannel(*ch_it, it->second.getNickName())) {
+                    ch_it->removeMember(it->second.getNickName());
+                    break;
+                }
+            }
+        }
+
+        close(clientSocket);
         if (it != this->clients.end())
             this->clients.erase(it);
     }
@@ -252,9 +261,10 @@ void Server::disconnect() {
     this->clients.clear();
 }
 
-void Server::sendMessageToClient(Client& sender, const std::string& message) {
+void Server::sendMessageToClient(Client& sender, const std::string& message, int receiver) {
     std::string msg = ":" + sender.getPrefixClient() + message + "\r\n";
-    send(sender.getClientSocket(), msg.c_str(), msg.length(), 0);
+    if (send(receiver, msg.c_str(), msg.length(), 0) < 0)
+        throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
     msg.clear();
 }
 

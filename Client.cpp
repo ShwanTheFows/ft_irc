@@ -106,6 +106,5 @@ void Client::welcome(std::string timeOfCreation) {
         ServerToClientPrefix(RPL_MOTD(this->nickName, "\\/_________/\\/_/    \\_\\/\\/____________/ \\_____\\/   \\/__________/\\/_/    \\_\\/        \\_\\/      "));
         ServerToClientPrefix(RPL_MOTD(this->nickName, " "));
         ServerToClientPrefix(RPL_ENDOFMOTD(this->nickName));
-        ServerToClientPrefix(RPL_UMODEIS(this->nickName, "+w"));
     }
 }

@@ -1,7 +1,9 @@
 #include "../Server.hpp"
 
 void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
-    channel* ch = getChannel(trim(arguments[1]));
+    channel* ch;
+    if (arguments.size() >= 2)
+        ch = getChannel(trim(arguments[1]));
     if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (arguments.size() >= 2 && trim(arguments[1])[0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT(client.getNickName(), joinVectorFromIndex(arguments, 0)));
     else if (arguments.size() > 2 && trim(arguments[2])[0] != ':') client.ServerToClientPrefix(ERR_TOOMANYTARGETS(trim(arguments[1])));
@@ -9,7 +11,7 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
         for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
             if (it->second.getNickName() == trim(arguments[1])) {
                 Client clientCopy = it->second;
-                sendMessageToClient(clientCopy, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2));
+                sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), clientCopy.getClientSocket());
                 return ;
             }
         }
