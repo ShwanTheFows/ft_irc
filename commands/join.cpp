@@ -1,21 +1,5 @@
 #include "../Server.hpp"
 
-// channel* Server::isChannel(std::string arg)
-// {
-//     std::vector<channel>::iterator it;
-//     for (it = channels.begin(); it != channels.end(); ++it) {
-//         if (it->getchannelName() == arg)
-//             return &(*it);
-//     }
-    
-//     // if (it == channels.end()) {
-        
-//     //     return &channels.back();
-//     // }
-    
-//     return nullptr;
-// }
-
 void    printJoinInfo(Client &client, channel& channel, std::string clientNames)
 {
     if (!channel.getTopic().empty())

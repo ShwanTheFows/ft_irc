@@ -307,5 +307,3 @@ bool Server::clientExists(std::string clientName) {
         if (it->second.getNickName() == clientName) return true;
     return false;
 }
-
-void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
