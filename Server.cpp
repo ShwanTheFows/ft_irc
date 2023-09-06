@@ -154,7 +154,6 @@ void Server::handleClient(int clientSocket) {
     int bytesRead = recv(clientSocket, buffer, bufsize - 2, 0);
 
     if (bytesRead > 0) {
-        // Print the received message
         removeTrailingNewline(buffer);
         if (!this->checkLoginCommands(clients[clientSocket], buffer)) {
             if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], buffer))
