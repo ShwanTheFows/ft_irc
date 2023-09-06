@@ -91,7 +91,7 @@ void Server::run() {
                 continue;
             }
 
-            std::cout << "A client has connected!." << std::endl;
+            std::cout << "A client is connected!." << std::endl;
             this->clients[clientSocket] = Client(clientSocket);
             this->clients[clientSocket].setServerHostName(this->ip);
             this->clients[clientSocket].timeJoined = std::time(NULL);
