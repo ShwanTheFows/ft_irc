@@ -57,6 +57,8 @@ class Server {
         bool doesChannelExist(std::string name);
         bool doesClientExistInChannel(channel& ch, std::string clientName);
         channel* getChannel(std::string channelName);
+        Client* getClient(std::string clientName);
+        bool clientExists(std::string clientName);
 
         void join(Client& client, std::vector<std::string>& arguments);
         void kick(Client& client, std::vector<std::string>& arguments);

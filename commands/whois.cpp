@@ -8,20 +8,36 @@ std::string getIdle(std::time_t time)
 }
 
 void Server::whois(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() < 2 || arguments.size() > 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (arguments.size() == 3 && trim(arguments[2]) != client.getServerHostName()) client.ServerToClientPrefix(ERR_NOSUCHSERVER(client.getNickName(), trim(arguments[2])));
-    else if (arguments.size() == 1) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
-    else {
-        for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-            if (it->second.getNickName() == trim(arguments[1])) {
-                Client clientCopy = it->second;
-                //check if user has joined any channels
-                client.ServerToClientPrefix(RPL_WHOISUSER(client.getNickName(), trim(arguments[1]), it->second.getNickName(), it->second.getHostName(), it->second.getRealName()));
-                client.ServerToClientPrefix(RPL_WHOISSERVER(client.getNickName(), it->second.getNickName(), client.getHostName(), "ft_irc"));
-                client.ServerToClientPrefix(RPL_WHOISIDLE(client.getNickName(), it->second.getNickName(), getIdle(client.timeJoined), client.getJoiningTime()));
-                return ;
+    if (arguments.size() == 1) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
+    else if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (arguments.size() > 1) {
+        int first = 1;
+        std::string firstClient;
+        std::vector<std::string> clts = splitStringByComma(joinVectorFromIndex2(arguments, 1));
+        for (size_t i = 0; i < clts.size(); i++) {
+            if (!clientExists(clts[i])) {
+                client.ServerToClientPrefix(ERR_NOSUCHNICK(clts[i]));
+                continue;
             }
+            if (first == 1) {
+                firstClient = clts[i];
+                first = 0;
+            }
+            std::string chnls;
+            Client* clt = getClient(clts[i]);
+            for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); it++) {
+                if(doesClientExistInChannel(*it, clts[i])) {
+                    if (it->isOp(clts[i])) chnls += "@" + it->getchannelName() + " ";
+                    else chnls += it->getchannelName() + " ";
+                }
+            }
+            if (!chnls.empty())
+                client.ServerToClientPrefix(RPL_WHOISCHANNELS(client.getNickName(), clts[i], chnls));
+            client.ServerToClientPrefix(RPL_WHOISUSER(client.getNickName(), clts[i], "", client.getHostName(), clt->getRealName()));
+            client.ServerToClientPrefix(RPL_WHOISSERVER(client.getNickName(), clts[i], client.getServerHostName(), "ft_irc"));
+            client.ServerToClientPrefix(RPL_WHOISIDLE(client.getNickName(), clts[i], getIdle(clt->timeJoined), clt->getJoiningTime()));
+            if (i == clts.size() - 1) client.ServerToClientPrefix(RPL_ENDOFWHOIS(client.getNickName(), firstClient));
         }
-        client.ServerToClientPrefix(ERR_NOSUCHNICK(client.getNickName()));
+        if (arguments.size() == 2 && clientExists(trim(arguments[1]))) client.ServerToClientPrefix(RPL_ENDOFWHOIS(client.getNickName(), firstClient));
     }
 }

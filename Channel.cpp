@@ -135,3 +135,9 @@ bool channel::isOp(std::string name){
         return false;
 return false;
 }
+
+std::string channel::getClientsSize(void) {
+    std::stringstream ss;
+    ss << this->clients.size();
+    return ss.str();
+}

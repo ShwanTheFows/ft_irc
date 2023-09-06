@@ -8,8 +8,8 @@ void Server::quit(Client& client, std::vector<std::string>& arguments) {
 
     for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); it++) {
         if (doesClientExistInChannel(*it, client.getNickName())) {
-            sendToChannelMembers(&*it, client, "QUIT :Quit: " + goodByeMessage);
             it->removeMember(client.getNickName());
+            sendToChannelMembers(&*it, client, "QUIT :Quit: " + goodByeMessage);
         }
     }
 

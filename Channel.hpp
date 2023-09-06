@@ -41,6 +41,7 @@ class channel{
         void removeOp(std::string name);
         void setOperators(std::string newOperators);
         bool isOp(std::string name);
+        std::string getClientsSize(void);
 };
 
 

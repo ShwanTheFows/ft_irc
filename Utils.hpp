@@ -9,8 +9,10 @@
 #include <cctype>
 #include <algorithm>
 
+std::vector<std::string> splitStringByComma(const std::string& input);
 std::vector<std::string> splitString(const std::string& str);
 std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex);
+std::string joinVectorFromIndex2(const std::vector<std::string>& input, size_t startIndex);
 std::string tolower(const std::string& input);
 int parsing(const std::string& str);
 std::string trim(const std::string& str);

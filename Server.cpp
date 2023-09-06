@@ -294,4 +294,18 @@ channel* Server::getChannel(std::string channelName) {
     return NULL;
 }
 
+Client* Server::getClient(std::string clientName) {
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (clientName == it->second.getNickName())
+            return &(it->second);
+    }
+    return NULL;
+}
+
+bool Server::clientExists(std::string clientName) {
+    for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it)
+        if (it->second.getNickName() == clientName) return true;
+    return false;
+}
+
 void Server::invite(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}

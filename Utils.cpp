@@ -1,5 +1,17 @@
 #include "Utils.hpp"
 
+std::vector<std::string> splitStringByComma(const std::string& input) {
+    std::vector<std::string> result;
+    std::stringstream ss(input);
+    std::string item;
+
+    while (std::getline(ss, item, ',')) {
+        result.push_back(item);
+    }
+
+    return result;
+}
+
 std::vector<std::string> splitString(const std::string& str) {
     size_t i  = 0;
     std::string element = "";
@@ -34,6 +46,18 @@ std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t st
     while (input[startIndex][i] && std::isspace(input[startIndex][i]))
         i++;
     if (input[startIndex][i] == ':') return result.substr(i + 1); 
+    return result;
+}
+
+std::string joinVectorFromIndex2(const std::vector<std::string>& input, size_t startIndex) {
+    std::string result;
+
+    if (startIndex < 0 || startIndex >= input.size())
+        return result;  // Return an empty string if the start index is out of bounds
+
+    for (size_t i = startIndex; i < input.size(); ++i) {
+        result += trim(input[i]);
+    }
     return result;
 }
 
