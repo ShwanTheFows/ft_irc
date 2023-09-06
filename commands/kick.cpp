@@ -1,7 +1,7 @@
 #include "../Server.hpp"
 
 void Server::kick(Client& client, std::vector<std::string>& arguments) {
-    channel* ch;
+    Channel* ch;
     if (arguments.size() >= 2)
         ch = getChannel(trim(arguments[1]));
     if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));

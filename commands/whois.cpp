@@ -25,7 +25,7 @@ void Server::whois(Client& client, std::vector<std::string>& arguments) {
             }
             std::string chnls;
             Client* clt = getClient(clts[i]);
-            for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); it++) {
+            for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++) {
                 if(doesClientExistInChannel(*it, clts[i])) {
                     if (it->isOp(clts[i])) chnls += "@" + it->getchannelName() + " ";
                     else chnls += it->getchannelName() + " ";

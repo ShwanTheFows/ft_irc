@@ -1,7 +1,7 @@
 #include "../Server.hpp"
 
 void Server::mode(Client& client, std::vector<std::string>& arguments) {
-    channel* ch;
+    Channel* ch;
     if (arguments.size() >= 2)
         ch = getChannel(trim(arguments[1]));
     if (arguments.size() < 3 || arguments.size() > 4) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
@@ -11,7 +11,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
     else if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
     else if (!ch->isOp(client.getNickName())) client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), trim(arguments[1])));
     else if (arguments.size() == 3 && trim(arguments[2])[0] == '-') {
-        std::vector<channel>::iterator it;
+        std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (it->getchannelName() == trim(arguments[1])) {  
                 if (tolower(trim(arguments[2])[1]) == 'i')
@@ -30,7 +30,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
         }        
     }
     else if (arguments.size() == 4 && trim(arguments[2])[0] == '-') {
-        std::vector<channel>::iterator it;
+        std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (tolower(trim(arguments[2])[1]) == 'o'){
                 if (it->getchannelName() == trim(arguments[1])) { 
@@ -47,7 +47,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
         }
     }
     else if (arguments.size() >= 3 && trim(arguments[2])[0] == '+') {
-        std::vector<channel>::iterator it;
+        std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (it->getchannelName() == trim(arguments[1])) {
                 if (tolower(trim(arguments[2])[1]) == 'i')

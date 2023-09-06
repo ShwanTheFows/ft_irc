@@ -1,7 +1,7 @@
 #include "../Server.hpp"
 
 void Server::invite(Client& client, std::vector<std::string>& arguments) {
-    channel* ch;
+    Channel* ch;
     if (arguments.size() == 3)
         ch = getChannel(trim(arguments[2]));
     if (arguments.size() != 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
@@ -13,7 +13,7 @@ void Server::invite(Client& client, std::vector<std::string>& arguments) {
         Client* clt = getClient(trim(arguments[1]));
         ch->addToInviteList(clt->getNickName());
         client.ServerToClientPrefix(RPL_INVITING(client.getNickName(), clt->getNickName(), ch->getchannelName()));
-        client.ServerToClientPrefix("NOTICE @" + ch->getchannelName() + " :" + client.getNickName() + " invited " + clt->getNickName() + " into channel " + ch->getchannelName());
+        client.ServerToClientPrefix("NOTICE @" + ch->getchannelName() + " :" + client.getNickName() + " invited " + clt->getNickName() + " into Channel " + ch->getchannelName());
         sendMessageToClient(client, "INVITE " + clt->getNickName() + " :" + ch->getchannelName(), clt->getClientSocket());
     }
 }

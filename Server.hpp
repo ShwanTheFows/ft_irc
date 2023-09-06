@@ -18,7 +18,7 @@ class Server {
         void disconnect(void);
     public:
         size_t maxNumOfClients;
-        std::vector<channel> channels;
+        std::vector<Channel> channels;
         std::string timeOfCreation;
         typedef void (Server::*cmd)(Client& client, std::vector<std::string>& arguments);
         std::map<std::string, cmd> cmdMap;
@@ -53,10 +53,10 @@ class Server {
         void checkUserCommand(Client& client, std::vector<std::string>& arguments);
         bool checkCommands(Client& client, std::string buffer);
         void sendMessageToClient(Client& sender, const std::string& message, int receiver);
-        void sendToChannelMembers(channel* channel, Client& client, std::string msg);
+        void sendToChannelMembers(Channel* Channel, Client& client, std::string msg);
         bool doesChannelExist(std::string name);
-        bool doesClientExistInChannel(channel& ch, std::string clientName);
-        channel* getChannel(std::string channelName);
+        bool doesClientExistInChannel(Channel& ch, std::string clientName);
+        Channel* getChannel(std::string channelName);
         Client* getClient(std::string clientName);
         bool clientExists(std::string clientName);
 

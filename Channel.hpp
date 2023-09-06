@@ -4,7 +4,7 @@
 #include "Client.hpp"
 
 
-class channel{
+class Channel{
     private:
         std::string _name;
         std::string _topic;
@@ -20,12 +20,12 @@ class channel{
         std::vector<std::string> operators;
         std::vector<std::string> inviteList;
         
-        channel();
-        channel(std::string name, Client& member);
-        channel(std::string name, Client& member, std::string key);
-        channel(const channel& other);
-        ~channel();
-        channel& operator=(const channel& other);
+        Channel();
+        Channel(std::string name, Client& member);
+        Channel(std::string name, Client& member, std::string key);
+        Channel(const Channel& other);
+        ~Channel();
+        Channel& operator=(const Channel& other);
 
         std::string getTopic(void);
         void setTopic(std::string subj);

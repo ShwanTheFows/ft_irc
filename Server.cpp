@@ -1,6 +1,8 @@
 #include "Server.hpp"
 
-Server::Server() {}
+Server::Server() : serverSocket(0), port(0), maxNumOfClients(0) {
+    
+}
 
 Server::Server(std::string ip, int port, std::string password, size_t num) : ip(ip), port(port), password(password), maxNumOfClients(num) {}
 
@@ -9,8 +11,23 @@ Server::Server(const Server& copy) {*this = copy;}
 Server::~Server() {}
 
 Server& Server::operator=(const Server& right) {
-    if (this != &right) {
-        this->serverSocket = right.getServerSocket();
+    if (this == &right) {
+        return *this;
+    }
+
+    this->serverSocket = right.serverSocket;
+    this->ip = right.ip;
+    this->port = right.port;
+    this->password = right.password;
+    this->maxNumOfClients = right.maxNumOfClients;
+    this->channels = right.channels;
+    this->timeOfCreation = right.timeOfCreation;
+    this->cmdMap = right.cmdMap;
+
+    clients.clear();
+    std::map<int, Client>::const_iterator it;
+    for (it = right.clients.begin(); it != right.clients.end(); ++it) {
+        clients[it->first] = it->second;
     }
 
     return *this;
@@ -148,7 +165,7 @@ void Server::handleClient(int clientSocket) {
         std::cout << "The client " << it->second.getNickName() << " has been disconnected." << std::endl;
         // Remove the client socket from the map
         if (channels.size() > 0) {
-            for (std::vector<channel>::iterator ch_it = channels.begin(); ch_it != channels.end(); ch_it++) {
+            for (std::vector<Channel>::iterator ch_it = channels.begin(); ch_it != channels.end(); ch_it++) {
                 if (doesClientExistInChannel(*ch_it, it->second.getNickName())) {
                     ch_it->removeMember(it->second.getNickName());
                     break;
@@ -268,18 +285,18 @@ void Server::sendMessageToClient(Client& sender, const std::string& message, int
     msg.clear();
 }
 
-void Server::sendToChannelMembers(channel* channel, Client& client, std::string msg) {
+void Server::sendToChannelMembers(Channel* Channel, Client& client, std::string msg) {
     size_t i = 0;
     std::string message = ":" + client.getPrefixClient() + msg + "\r\n";
-    while (i < channel->clients.size()) {
-        send(channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
+    while (i < Channel->clients.size()) {
+        send(Channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
         i++;
     }
 }
 
 bool Server::doesChannelExist(std::string name) {
     if (channels.size() == 0) return false;
-    for (std::vector<channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+    for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
         if (it->getchannelName() == name) {
             return true;
         }
@@ -287,7 +304,7 @@ bool Server::doesChannelExist(std::string name) {
     return false;
 }
 
-bool Server::doesClientExistInChannel(channel& ch, std::string clientName) {
+bool Server::doesClientExistInChannel(Channel& ch, std::string clientName) {
     if (ch.isempty) return false;
     for (std::vector<Client *>::iterator it = ch.clients.begin(); it != ch.clients.end(); ++it) {   
         if ((**it).getNickName() == clientName)
@@ -296,8 +313,8 @@ bool Server::doesClientExistInChannel(channel& ch, std::string clientName) {
     return false;
 }
 
-channel* Server::getChannel(std::string channelName) {
-    for (std::vector<channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++) {
+Channel* Server::getChannel(std::string channelName) {
+    for (std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++) {
         if (channelName == it->getchannelName())
             return &(*it);
     }

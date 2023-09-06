@@ -1,15 +1,15 @@
 #include "Channel.hpp"
 
-channel::channel() {this->isempty = true;}
+Channel::Channel() {this->isempty = true;}
 
-channel::channel(std::string name, Client& member) : _name(name), isempty(false)
+Channel::Channel(std::string name, Client& member) : _name(name), isempty(false)
 {
     this->isPrivate = false;
     haveKey(false);
     clients.push_back(&member);
     operators.push_back(member.getNickName());
 }
-channel::channel(std::string name, Client& member, std::string key) : _name(name), _key(key), isempty(false)
+Channel::Channel(std::string name, Client& member, std::string key) : _name(name), _key(key), isempty(false)
 {
     this->isPrivate = false;
     haveKey(true);
@@ -17,9 +17,9 @@ channel::channel(std::string name, Client& member, std::string key) : _name(name
     operators.push_back(member.getNickName());
 }
 
-channel::channel(const channel& other) {*this = copy;}
+Channel::Channel(const Channel& other) {*this = other;}
 
-channel& channel::operator=(const channel& other) {
+Channel& Channel::operator=(const Channel& other) {
     if (this != &other) {
         _name = other._name;
         _topic = other._topic;
@@ -52,13 +52,13 @@ channel& channel::operator=(const channel& other) {
     return *this;
 }
 
-channel::~channel() {}
-std::string channel::getchannelName(void)
+Channel::~Channel() {}
+std::string Channel::getchannelName(void)
 {
     return(this->_name);
 }
 
-bool channel::addMember(Client& member)
+bool Channel::addMember(Client& member)
 {
     if (this->Ulimit && (int)clients.size() >= this->userLimit) {
         member.ServerToClientPrefix(ERR_CHANNELISFULL(member.getNickName(), getchannelName()));
@@ -77,40 +77,40 @@ bool channel::addMember(Client& member)
     return true;
 }
 
-std::string channel::getTopic(){
+std::string Channel::getTopic(){
     return(this->_topic);
 }
 
-void channel::setTopic(std::string subj)
+void Channel::setTopic(std::string subj)
 {
     this->_topic = subj;
 }
 
-void channel::setKey(std::string key){
+void Channel::setKey(std::string key){
     this->_key = key;
 }
 
-std::string channel::getKey(void){
+std::string Channel::getKey(void){
     return(this->_key);
 }
 
-bool channel::sethaveKey(){
+bool Channel::sethaveKey(){
     return(this->havekey);
 }
 
-void channel::haveKey(bool keyVal){
+void Channel::haveKey(bool keyVal){
     this->havekey = keyVal;
 }
 
-bool channel::getPrivate(){
+bool Channel::getPrivate(){
     return(this->isPrivate);
 }
-void channel::setPrivate(bool prv)
+void Channel::setPrivate(bool prv)
 {
     this->isPrivate = prv;
 }
 
-std::string channel::getClientNames(void) {
+std::string Channel::getClientNames(void) {
     std::string result = "";
     for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
         if (this->isOp((**myit).getNickName())) result += '@' + (**myit).getNickName();
@@ -120,7 +120,7 @@ std::string channel::getClientNames(void) {
     return result;
 }
 
-void channel::removeMember(std::string clientName) {
+void Channel::removeMember(std::string clientName) {
     for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
         if ((**myit).getNickName() == clientName) {
             if (this->isOp((**myit).getNickName()))
@@ -133,27 +133,27 @@ void channel::removeMember(std::string clientName) {
     }
 }
 
-void channel::boolTopic(bool settop){
+void Channel::boolTopic(bool settop){
     this->haveTopic = settop;
 }
 
-void channel::haveLimit(bool change){
+void Channel::haveLimit(bool change){
     this->Ulimit = change;
 }
 
- int channel::getLimit()
+ int Channel::getLimit()
  {
     return(this->userLimit);
  }
-void channel::setLimit(int lim){
+void Channel::setLimit(int lim){
     this->userLimit = lim;
 }
-bool channel::hasTopic()
+bool Channel::hasTopic()
 {
     return(this->haveTopic);
 }
 
-void channel::removeOp(std::string name)
+void Channel::removeOp(std::string name)
 {
     if (operators.size() == 0) return ;
     std::vector<std::string>::iterator it = operators.begin();
@@ -165,12 +165,12 @@ void channel::removeOp(std::string name)
     }
 }
 
-void channel::setOperators(std::string newOperators) {
+void Channel::setOperators(std::string newOperators) {
     if (this->isOp(newOperators)) return ;
     else operators.push_back(newOperators);
 }
 
-bool channel::isOp(std::string name){
+bool Channel::isOp(std::string name){
     if (operators.size() == 0) return false;
     std::vector<std::string>::iterator it = operators.begin();
     for(;it != operators.end();it++)
@@ -181,13 +181,13 @@ bool channel::isOp(std::string name){
 return false;
 }
 
-std::string channel::getClientsSize(void) {
+std::string Channel::getClientsSize(void) {
     std::stringstream ss;
     ss << this->clients.size();
     return ss.str();
 }
 
-void channel::addToInviteList(std::string clientName) {
+void Channel::addToInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) this->inviteList.push_back(clientName);
     else {
         for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
@@ -197,7 +197,7 @@ void channel::addToInviteList(std::string clientName) {
     }
 }
 
-void channel::removeFromInviteList(std::string clientName) {
+void Channel::removeFromInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) return ;
     for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
         if (*it == clientName) {
@@ -207,7 +207,7 @@ void channel::removeFromInviteList(std::string clientName) {
     }
 }
 
-bool channel::isInInviteList(std::string clientName) {
+bool Channel::isInInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) return false;
     for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
         if (*it == clientName) return true;
