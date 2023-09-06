@@ -289,7 +289,8 @@ void Server::sendToChannelMembers(Channel* Channel, Client& client, std::string 
     size_t i = 0;
     std::string message = ":" + client.getPrefixClient() + msg + "\r\n";
     while (i < Channel->clients.size()) {
-        send(Channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0);
+        if (send(Channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0) < 0)
+            throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
         i++;
     }
 }
