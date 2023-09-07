@@ -11,8 +11,9 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 2 || arguments.size() > 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else {
         std::vector<std::string> receivers = splitStringByComma(trim(arguments[1]));
-        std::vector<std::string> keys = splitStringByComma(trim(arguments[2]));
-        if (receivers.size() > keys.size()) fillVectorFromEnd(keys, receivers.size() - 1);
+        std::vector<std::string> keys;
+        if (arguments.size() >= 3) keys = splitStringByComma(trim(arguments[2]));
+        if (receivers.size() > keys.size()) fillVectorFromEnd(keys, receivers.size());
         for (size_t i = 0; i < receivers.size(); i++) {
             Channel* ch = getChannel(receivers[i]);
             if (ch != NULL) {
@@ -22,6 +23,7 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                             if (!ch->addMember(client)) return ;
                             sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
                             printJoinInfo(client, *ch, ch->getClientNames());
+                            continue;
                         }
                         else {
                             client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
@@ -36,15 +38,17 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                         if (!ch->addMember(client)) return ;
                         sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
                         printJoinInfo(client, *ch, ch->getClientNames());
+                        continue;
                     }
                 }
                 else if (ch->getPrivate() == true) {
                     if (ch->isInInviteList(client.getNickName())) {
                         if (ch->sethaveKey() && arguments.size() == 3) {
                             if(arguments.size() == 3 && ch->getKey() == keys[i]) {
-                                if (!ch->addMember(client)) return ;
+                                if (!ch->addMember(client)) continue;
                                 sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
                                 printJoinInfo(client, *ch, ch->getClientNames());
+                                continue;
                             }
                             else {
                                 client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
@@ -56,9 +60,10 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                             continue;
                         }
                         else {
-                            if (!ch->addMember(client)) return ;
+                            if (!ch->addMember(client)) continue;
                             sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
                             printJoinInfo(client, *ch, ch->getClientNames());
+                            continue;
                         }
                     } else {
                         client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), ch->getchannelName()));

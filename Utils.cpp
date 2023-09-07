@@ -1,13 +1,14 @@
 #include "Utils.hpp"
 
-void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex) {
-    // Check if endIndex is within the vector's bounds
-    if (endIndex < 0)
+void fillVectorFromEnd(std::vector<std::string>& vector, int index) {
+    int currentLength = vector.size();
+    if (index <= currentLength) {
         return;
+    }
 
-    // Fill the vector from end to the specified index
-    for (int i = vec.size() - 1; i < endIndex; i++) {
-        vec.push_back("");
+    int numEmptyStrings = index - currentLength;
+    for (int i = 0; i < numEmptyStrings; ++i) {
+        vector.push_back("");
     }
 }
 
