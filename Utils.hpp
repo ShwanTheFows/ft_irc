@@ -9,6 +9,7 @@
 #include <cctype>
 #include <algorithm>
 
+void handleReceivedMessage(const char* message, int length);
 void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex);
 std::vector<std::string> splitStringByComma(const std::string& input);
 std::vector<std::string> splitString(const std::string& str);

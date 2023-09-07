@@ -59,8 +59,8 @@ void Server::cmdMapinit(void) {
 
 void Server::run() {
     time_t now = time(0);
-    tm *gmtm = gmtime(&now);
-    timeOfCreation = asctime(gmtm);
+    //tm *gmtm = gmtime(&now);
+    timeOfCreation = asctime(gmtime(&now));
     timeOfCreation.erase(std::remove(timeOfCreation.begin(), timeOfCreation.end(), '\n'), timeOfCreation.end());
     setUpSocket();
     bind();
@@ -142,15 +142,18 @@ void Server::listen() {
 }
 
 void Server::handleClient(int clientSocket) {
-    int bufsize = 512;
-    char buffer[bufsize];
+    int buffsize = 512;
+    char buffer[buffsize];
 
-    memset(buffer, 0, bufsize);  // Clear the buffer
+    memset(buffer, 0, buffsize);  // Clear the buffer
 
     // Receive message from the client
-    int bytesRead = recv(clientSocket, buffer, bufsize, 0);
+    int bytesRead = recv(clientSocket, buffer, buffsize, 0);
 
     if (bytesRead > 0) {
+        if (bytesRead >= buffsize) {
+            buffer[buffsize] = '\0';
+        }
         removeTrailingNewline(buffer);
         if (!this->checkLoginCommands(clients[clientSocket], buffer)) {
             if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], buffer))

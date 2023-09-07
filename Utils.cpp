@@ -1,5 +1,21 @@
 #include "Utils.hpp"
 
+const int MAX_BUFFER_SIZE = 512;
+
+void handleReceivedMessage(const char* message, int length) {
+    // Create a buffer to store the truncated message
+    char truncatedMessage[MAX_BUFFER_SIZE + 1];  // Add 1 for null-terminator
+    memset(truncatedMessage, 0, sizeof(truncatedMessage));
+
+    // Truncate the message if it exceeds the maximum buffer size
+    if (length > MAX_BUFFER_SIZE) {
+        strncpy(truncatedMessage, message, MAX_BUFFER_SIZE);
+    } else {
+        strncpy(truncatedMessage, message, length);
+    }
+
+}
+
 void fillVectorFromEnd(std::vector<std::string>& vector, int index) {
     int currentLength = vector.size();
     if (index <= currentLength) {
