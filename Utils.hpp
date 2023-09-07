@@ -9,6 +9,7 @@
 #include <cctype>
 #include <algorithm>
 
+void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex);
 std::vector<std::string> splitStringByComma(const std::string& input);
 std::vector<std::string> splitString(const std::string& str);
 std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex);
@@ -22,5 +23,6 @@ std::string getHostIpAddress(void);
 bool isValidNickname(const std::string& nickname);
 bool isValidUsername(const std::string& username);
 bool isValidChannelName(const std::string& channelName);
+bool findCommand(const std::vector<std::string>& commands, const std::string& targetCommand);
 
 #endif

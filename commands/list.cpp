@@ -5,17 +5,17 @@ void Server::list(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() == 1) {
         std::vector<Channel>::iterator it;
         client.ServerToClientPrefix(RPL_LISTSTART(client.getNickName()));
-        for (it = channels.begin(); it != channels.end(); ++it) 
-            client.ServerToClientPrefix(RPL_LIST(client.getNickName(), it->getchannelName(), it->getClientsSize(), it->getTopic()));
+        for (it = channels.begin(); it != channels.end(); ++it)
+                client.ServerToClientPrefix(RPL_LIST(client.getNickName(), it->getchannelName(), it->getClientsSize(), it->getTopic()));
         client.ServerToClientPrefix(RPL_LISTEND(client.getNickName()));
-    } else {
+    } else if (trim(arguments[2]) != this->ip) client.ServerToClientPrefix(ERR_NOSUCHSERVER(client.getNickName(), trim(arguments[2])));
+    else {
         client.ServerToClientPrefix(RPL_LISTSTART(client.getNickName()));
         std::vector<std::string> chnls = splitStringByComma(joinVectorFromIndex2(arguments, 1));
         for (size_t i = 0; i < chnls.size(); i++) {
-            if (doesChannelExist(chnls[i])) {
-                Channel* ch = getChannel(chnls[i]);
-                client.ServerToClientPrefix(RPL_LIST(client.getNickName(), ch->getchannelName(), ch->getClientsSize(), ch->getTopic()));
-            }
+            if (!doesChannelExist(chnls[i])) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), chnls[i]));
+            Channel* ch = getChannel(chnls[i]);
+            client.ServerToClientPrefix(RPL_LIST(client.getNickName(), ch->getchannelName(), ch->getClientsSize(), ch->getTopic()));
         }
         client.ServerToClientPrefix(RPL_LISTEND(client.getNickName()));
     }

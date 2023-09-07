@@ -1,5 +1,16 @@
 #include "Utils.hpp"
 
+void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex) {
+    // Check if endIndex is within the vector's bounds
+    if (endIndex < 0)
+        return;
+
+    // Fill the vector from end to the specified index
+    for (int i = vec.size() - 1; i < endIndex; i++) {
+        vec.push_back("");
+    }
+}
+
 std::vector<std::string> splitStringByComma(const std::string& input) {
     std::vector<std::string> result;
     std::stringstream ss(input);
@@ -183,3 +194,17 @@ bool isValidChannelName(const std::string& channelName) {
 
     return true;
 }
+
+bool findCommand(const std::vector<std::string>& commands, const std::string& targetCommand) {
+    // Iterate over the vector and search for the target command
+    for (std::vector<std::string>::size_type i = 0; i < commands.size(); i++) {
+        if (commands[i] == targetCommand) {
+            std::cout << "Command found at index: " << i << std::endl;
+            return true;
+        }
+    }
+
+    std::cout << "Command not found!" << std::endl;
+    return false;
+}
+

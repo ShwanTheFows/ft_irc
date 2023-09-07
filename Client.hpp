@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <sys/poll.h>
+#include <fcntl.h>
 
 class Client {
     private:

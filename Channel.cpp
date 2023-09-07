@@ -214,3 +214,16 @@ bool Channel::isInInviteList(std::string clientName) {
     }
     return false;
 }
+
+void Channel::changeNickname(std::string oldNick, std::string newNick) {
+    if (isInInviteList(oldNick)) {
+        for (std::vector<std::string>::size_type i = 0; i < this->inviteList.size(); i++)
+            if (this->inviteList[i] == oldNick)
+                this->inviteList[i] = newNick;
+    }
+    if (isOp(oldNick)) {
+        for (std::vector<std::string>::size_type i = 0; i < this->operators.size(); i++)
+            if (this->operators[i] == oldNick)
+                this->operators[i] = newNick;
+    }
+}

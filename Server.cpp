@@ -1,10 +1,10 @@
 #include "Server.hpp"
 
-Server::Server() : serverSocket(0), port(0), maxNumOfClients(0) {
+Server::Server() : serverSocket(0), port(0) {
     
 }
 
-Server::Server(std::string ip, int port, std::string password, size_t num) : ip(ip), port(port), password(password), maxNumOfClients(num) {}
+Server::Server(std::string ip, int port, std::string password) : ip(ip), port(port), password(password) {}
 
 Server::Server(const Server& copy) {*this = copy;}
 
@@ -19,7 +19,6 @@ Server& Server::operator=(const Server& right) {
     this->ip = right.ip;
     this->port = right.port;
     this->password = right.password;
-    this->maxNumOfClients = right.maxNumOfClients;
     this->channels = right.channels;
     this->timeOfCreation = right.timeOfCreation;
     this->cmdMap = right.cmdMap;
@@ -86,9 +85,6 @@ void Server::run() {
             if (clientSocket == -1) {
                 std::cout << "Accept failed!" << std::endl;
                 continue;
-            } else if (clients.size() >= this->maxNumOfClients) {
-                std::cout << "Maximum number of clients reached!" << std::endl;
-                continue;
             }
 
             std::cout << "A client is connected!." << std::endl;
@@ -112,24 +108,25 @@ void Server::run() {
 }
 
 void Server::setUpSocket() {
+    int	optval = 1;
     this->serverSocket = -1;
-    this->serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (this->serverSocket == -1) {
-        std::cout << "Error in setting up the server socket!" << std::endl;
+    this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (this->serverSocket < 0) {
         throw std::runtime_error("Server socket setup failed.");
-    } else {
-        std::cout << "The server socket has been set up successfully!" << std::endl;
     }
+    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR,  (char *) &optval, sizeof(optval)) < 0)
+		throw std::runtime_error("Error while setting socket options");
+	if (fcntl(this->serverSocket, F_SETFL, fcntl(this->serverSocket, F_GETFL, 0) | O_NONBLOCK) < 0)
+		throw std::runtime_error("Error while setting server's file socket to non-blocking");
+    std::cout << "The server socket has been set up successfully!" << std::endl;
 }
 
 void Server::bind() {
     sockaddr_in service;
     service.sin_family = AF_INET;
-    if (inet_pton(AF_INET, this->ip.c_str(), &(service.sin_addr)) <= 0) {
-        throw std::runtime_error("Invalid server address.");
-    }
     service.sin_port = htons(this->port);
-    if (::bind(this->serverSocket, reinterpret_cast<struct sockaddr*>(&service), sizeof(service)) != 0) {
+    service.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (::bind(this->serverSocket, reinterpret_cast<struct sockaddr*>(&service), sizeof(service)) < 0) {
         throw std::runtime_error("Binding failed.");
     } else {
         std::cout << "Binding is done successfully!" << std::endl;
@@ -137,7 +134,7 @@ void Server::bind() {
 }
 
 void Server::listen() {
-    if (::listen(this->serverSocket, 1) == -1) {
+    if (::listen(this->serverSocket, 1) < 0) {
         throw std::runtime_error("Listening failed.");
     } else {
         std::cout << "Listening for clients..." << std::endl;
@@ -237,9 +234,10 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
 
 void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
-    else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
-    else if (client.getNickName().empty()) {
+    //else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
+    else if (trim(arguments[1]).empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
+    else if (client.getNickName() == trim(arguments[1])) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
+    else {
         if (!isValidNickname(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {
             for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
@@ -248,14 +246,17 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
                     return ;
                 }
             }
+            if (!client.getNickName().empty()) {
+                for (std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+                    it->changeNickname(client.getNickName(), trim(arguments[1]));
+            }
             client.setNickName(trim(arguments[1]));
-            if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
+            if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty() && !client.isRegistered) {
                 client.isRegistered = true;
                 client.welcome(timeOfCreation);
             }
         }
     }
-    else if (client.getNickName().length() != 0) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
 }
 
 void Server::checkUserCommand(Client& client, std::vector<std::string>& arguments) {
@@ -309,7 +310,7 @@ bool Server::doesChannelExist(std::string name) {
 
 bool Server::doesClientExistInChannel(Channel& ch, std::string clientName) {
     if (ch.isempty) return false;
-    for (std::vector<Client *>::iterator it = ch.clients.begin(); it != ch.clients.end(); ++it) {   
+    for (std::vector<Client *>::iterator it = ch.clients.begin(); it != ch.clients.end(); ++it) {
         if ((**it).getNickName() == clientName)
             return true;
     }

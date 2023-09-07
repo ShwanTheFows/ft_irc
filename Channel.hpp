@@ -51,6 +51,7 @@ class Channel{
         void addToInviteList(std::string clientName);
         void removeFromInviteList(std::string clientName);
         bool isInInviteList(std::string clientName);
+        void changeNickname(std::string oldNick, std::string newNick);
 };
 
 

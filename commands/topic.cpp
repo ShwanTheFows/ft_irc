@@ -8,20 +8,22 @@ void Server::topic(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() > 2 && trim(arguments[2])[0] != ':') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
     else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", trim(arguments[1])));
+    else if (arguments.size() == 2 && ch->getTopic().empty()) client.ServerToClientPrefix(RPL_NOTOPIC(client.getNickName(), ch->getchannelName()));
     else if (arguments.size() == 2) {
         client.ServerToClientPrefix(RPL_TOPIC(client.getNickName(), ch->getchannelName(), ch->getTopic()));
     } else if (arguments.size() > 2) {
-        if (ch->getchannelName() == arguments[1]) {
-            if(ch->hasTopic() )
+        if (ch->getchannelName() == trim(arguments[1])) {
+            if (ch->hasTopic()) {
                 if(ch->isOp(client.getNickName())){
-                    ch->setTopic(joinVectorFromIndex(arguments,2));
-                    client.ServerToClientPrefix(RPL_TOPIC(client.getNickName(), ch->getchannelName(), ch->getTopic()));
+                    if (trim(joinVectorFromIndex(arguments,2)).empty()) client.ServerToClientPrefix(RPL_NOTOPIC(client.getNickName(), ch->getchannelName()));
+                    else ch->setTopic(joinVectorFromIndex(arguments,2));
                 }
                 else
-                    client.ServerToClientPrefix(ERR_CANNOTSENDTOCHAN(client.getNickName()));
+                    client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), ch->getchannelName()));
+            }
             else {
-                ch->setTopic(joinVectorFromIndex(arguments,2));
-                client.ServerToClientPrefix(RPL_TOPIC(client.getNickName(), ch->getchannelName(), ch->getTopic()));
+                if (trim(joinVectorFromIndex(arguments,2)).empty()) client.ServerToClientPrefix(RPL_NOTOPIC(client.getNickName(), ch->getchannelName()));
+                else ch->setTopic(joinVectorFromIndex(arguments,2));
             }
             return ;
         }

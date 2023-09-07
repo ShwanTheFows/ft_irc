@@ -17,14 +17,13 @@ class Server {
         void handleClient(int clientSocket);
         void disconnect(void);
     public:
-        size_t maxNumOfClients;
         std::vector<Channel> channels;
         std::string timeOfCreation;
         typedef void (Server::*cmd)(Client& client, std::vector<std::string>& arguments);
         std::map<std::string, cmd> cmdMap;
 
         Server();
-        Server(std::string ip,int port, std::string password, size_t num);
+        Server(std::string ip,int port, std::string password);
         Server(const Server& copy);
         ~Server();
 

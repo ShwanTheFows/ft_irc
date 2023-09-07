@@ -53,8 +53,8 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
                 if (tolower(trim(arguments[2])[1]) == 'i')
                     it->setPrivate(true);
                 else if (tolower(trim(arguments[2])[1]) == 't') {
-                    it->boolTopic(true);
-                    it->setTopic(trim(arguments[3]));
+                    if (arguments.size() > 3) client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                    else it->boolTopic(true);
                 }
                 else if (tolower(trim(arguments[2])[1]) == 'k') {
                     it->haveKey(true);

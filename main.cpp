@@ -6,7 +6,7 @@ int main(int ac, char* av[]){
         return 0;
     }
     try {
-        Server test(getHostIpAddress(), parsing(av[1]), trim(av[2]), 10);
+        Server test(getHostIpAddress(), parsing(av[1]), trim(av[2]));
         test.run();
     }
     catch (std::exception& e){

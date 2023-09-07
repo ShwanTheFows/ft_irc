@@ -9,61 +9,79 @@ void    printJoinInfo(Client &client, Channel& Channel, std::string clientNames)
 
 void Server::join(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 2 || arguments.size() > 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    else if (!isValidChannelName(trim(arguments[1]))) client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
     else {
-        std::vector<Channel>::iterator it;
-        for (it = channels.begin(); it != channels.end(); ++it) {
-            if (it->getchannelName() == trim(arguments[1])) {
-                if(it->getPrivate() == false){
-                    if (it->sethaveKey() && arguments.size() == 3) {
-                        if(arguments.size() == 3 && it->getKey() == trim(arguments[2])) {
-                            if (!it->addMember(client)) return ;
-                            sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
-                            printJoinInfo(client, *it, it->getClientNames());
+        std::vector<std::string> receivers = splitStringByComma(trim(arguments[1]));
+        std::vector<std::string> keys = splitStringByComma(trim(arguments[2]));
+        if (receivers.size() > keys.size()) fillVectorFromEnd(keys, receivers.size() - 1);
+        for (size_t i = 0; i < receivers.size(); i++) {
+            Channel* ch = getChannel(receivers[i]);
+            if (ch != NULL) {
+                if(ch->getPrivate() == false){
+                    if (ch->sethaveKey() && arguments.size() == 3) {
+                        if(arguments.size() == 3 && ch->getKey() == keys[i]) {
+                            if (!ch->addMember(client)) return ;
+                            sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
+                            printJoinInfo(client, *ch, ch->getClientNames());
                         }
-                        else
-                            client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
-                    }
-                    else if (it->sethaveKey() && arguments.size() == 2) client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), it->getchannelName()));
-                    else {
-                        if (!it->addMember(client)) return ;
-                        sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
-                        printJoinInfo(client, *it, it->getClientNames());
-                    }
-                }
-                else if (it->getPrivate() == true) {
-                    Channel* ch = getChannel(trim(arguments[1]));
-                    if (ch->isInInviteList(client.getNickName())) {
-                        if (it->sethaveKey() && arguments.size() == 3) {
-                            if(arguments.size() == 3 && it->getKey() == trim(arguments[2])) {
-                                if (!it->addMember(client)) return ;
-                                sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
-                                printJoinInfo(client, *it, it->getClientNames());
-                            }
-                            else
-                                client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
-                        }
-                        else if (it->sethaveKey() && arguments.size() == 2) client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), it->getchannelName()));
                         else {
-                            if (!it->addMember(client)) return ;
-                            sendToChannelMembers(&(*it), client, "JOIN :" + it->getchannelName());
-                            printJoinInfo(client, *it, it->getClientNames());
+                            client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
+                            continue;
                         }
-                    } else client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));
+                    }
+                    else if (ch->sethaveKey() && arguments.size() == 2) {
+                        client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), ch->getchannelName()));
+                        continue;
+                    }
+                    else {
+                        if (!ch->addMember(client)) return ;
+                        sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
+                        printJoinInfo(client, *ch, ch->getClientNames());
+                    }
                 }
-                else
-                   client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), it->getchannelName()));
-                break;
+                else if (ch->getPrivate() == true) {
+                    if (ch->isInInviteList(client.getNickName())) {
+                        if (ch->sethaveKey() && arguments.size() == 3) {
+                            if(arguments.size() == 3 && ch->getKey() == keys[i]) {
+                                if (!ch->addMember(client)) return ;
+                                sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
+                                printJoinInfo(client, *ch, ch->getClientNames());
+                            }
+                            else {
+                                client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
+                                continue;
+                            }
+                        }
+                        else if (ch->sethaveKey() && arguments.size() == 2) {
+                            client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), ch->getchannelName()));
+                            continue;
+                        }
+                        else {
+                            if (!ch->addMember(client)) return ;
+                            sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
+                            printJoinInfo(client, *ch, ch->getClientNames());
+                        }
+                    } else {
+                        client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), ch->getchannelName()));
+                        continue;
+                    }
+                }
+                else {
+                   client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), ch->getchannelName()));
+                   continue;
+                }
             }
-        }
-
-        if (it == channels.end()) {
-                if (arguments.size() ==  3)
-                    channels.push_back(Channel(trim(arguments[1]),client,trim(arguments[2])));
-                else if (arguments.size() ==  2)
-                    channels.push_back(Channel(trim(arguments[1]),client));
-                sendToChannelMembers(&channels[channels.size()-1], client, "JOIN :" + channels[channels.size()-1].getchannelName());
-                printJoinInfo(client, channels[channels.size()-1], channels[channels.size()-1].getClientNames());
+            else {
+                if (!isValidChannelName(receivers[i])) {
+                    client.ServerToClientPrefix(ERR_BADCHANNAME(client.getNickName()));
+                    continue;    
+                }
+                else if (!keys[i].empty())
+                    channels.push_back(Channel(receivers[i],client,keys[i]));
+                else
+                    channels.push_back(Channel(receivers[i],client));
+            }
+            sendToChannelMembers(&channels[channels.size()-1], client, "JOIN :" + channels[channels.size()-1].getchannelName());
+            printJoinInfo(client, channels[channels.size()-1], channels[channels.size()-1].getClientNames());
         }
     }
 }

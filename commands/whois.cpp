@@ -38,6 +38,6 @@ void Server::whois(Client& client, std::vector<std::string>& arguments) {
             client.ServerToClientPrefix(RPL_WHOISIDLE(client.getNickName(), clts[i], getIdle(clt->timeJoined), clt->getJoiningTime()));
             if (i == clts.size() - 1) client.ServerToClientPrefix(RPL_ENDOFWHOIS(client.getNickName(), firstClient));
         }
-        if (arguments.size() == 2 && clientExists(trim(arguments[1]))) client.ServerToClientPrefix(RPL_ENDOFWHOIS(client.getNickName(), firstClient));
+        //if (arguments.size() == 2 && clientExists(trim(arguments[1]))) client.ServerToClientPrefix(RPL_ENDOFWHOIS(client.getNickName(), firstClient));
     }
 }
