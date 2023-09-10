@@ -22,6 +22,7 @@ Client& Client::operator=(const Client& right) {
         this->timeJoined = right.timeJoined;
         this->logged = right.logged;
         this->isRegistered = right.isRegistered;
+        this->_buffer = right._buffer;
     }
 
     return *this;
