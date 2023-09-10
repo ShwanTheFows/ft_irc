@@ -4,7 +4,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
     Channel* ch;
     if (arguments.size() >= 2)
         ch = getChannel(trim(arguments[1]));
-    if (arguments.size() < 3 || arguments.size() > 4) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     //else if (trim(arguments[2]).length() != 2) client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
     else if (arguments.size() > 3 && trim(arguments[2])[0] == '-' && tolower(trim(arguments[2])[1]) != 'o') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     // else if (arguments.size() == 3 && trim(arguments[2])[0] == '+' && tolower(trim(arguments[2])[1]) != 'i') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
@@ -74,7 +74,11 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
                     }
                     else {
                         it->haveKey(true);
-                        it->setKey(trim(arguments[3]));
+                        if (trim(arguments[3]).length() > 23) {
+                            arguments[3] = passLimit(trim(arguments[3]));
+                            it->setKey(arguments[3]);
+                        }
+                        else it->setKey(trim(arguments[3]));
                     }
                 }
                 else if (tolower(trim(arguments[2])[1]) == 'o') {

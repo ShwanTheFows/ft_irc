@@ -16,6 +16,12 @@ void handleReceivedMessage(const char* message, int length) {
 
 }
 
+std::string passLimit(std::string input) {
+    if (input.length() > 23)
+        return input.substr(0, 23);
+    return input;
+}
+
 void fillVectorFromEnd(std::vector<std::string>& vector, int index) {
     int currentLength = vector.size();
     if (index <= currentLength) {

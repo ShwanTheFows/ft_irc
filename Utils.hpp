@@ -12,6 +12,7 @@
 void handleReceivedMessage(const char* message, int length);
 void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex);
 std::vector<std::string> splitStringByComma(const std::string& input);
+std::string passLimit(std::string input);
 std::vector<std::string> splitStringByNewline(const std::string& input);
 std::vector<std::string> splitString(const std::string& str);
 std::string joinVectorFromIndex(const std::vector<std::string>& input, size_t startIndex);
