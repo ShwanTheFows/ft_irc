@@ -70,7 +70,7 @@ class Client {
         void ClientToClientPrefix(std::string message);
         void ServerToClientPrefix(std::string message);
         void mySend(std::string message);
-        void welcome(std::string timeOfCreation);
+        void welcome();
 
 };
 

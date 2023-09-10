@@ -86,15 +86,13 @@ void Client::mySend(std::string str) {
         throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
 }
 
-void Client::welcome(std::string timeOfCreation) {
+void Client::welcome() {
     if (!this->nickName.empty() && !this->userName.empty())
     {
         std::cout << this->nickName << " has registered!" << std::endl;
         isRegistered = true;
         ServerToClientPrefix(RPL_WELCOME(this->nickName, "IRC", this->userName, this->hostName));
         ServerToClientPrefix(RPL_YOURHOST(this->nickName, this->hostName));
-        ServerToClientPrefix(RPL_CREATED(this->nickName, timeOfCreation));
-        ServerToClientPrefix(RPL_MOTD(this->nickName, "- " + this->serverHostName + " Message of the day"));
         ServerToClientPrefix(RPL_MOTD(this->nickName, "          _          _            _            _            _            _     _          _ "));
         ServerToClientPrefix(RPL_MOTD(this->nickName, "         /\\ \\       /\\ \\        /\\ \\          / /\\         /\\ \\         /\\ \\  /\\ \\    _ / /\\  "));
         ServerToClientPrefix(RPL_MOTD(this->nickName, "         \\ \\ \\     /  \\ \\      /  \\ \\        / /  \\       /  \\ \\       /  \\ \\ \\ \\ \\  /_/ / /  "));

@@ -9,8 +9,11 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() > 3 && trim(arguments[2])[0] == '-' && tolower(trim(arguments[2])[1]) != 'o') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     // else if (arguments.size() == 3 && trim(arguments[2])[0] == '+' && tolower(trim(arguments[2])[1]) != 'i') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
-    else if (!ch->isOp(client.getNickName())) client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), trim(arguments[1])));
     else if (arguments.size() == 3 && trim(arguments[2])[0] == '-') {
+        if (!ch->isOp(client.getNickName())) {
+            client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), trim(arguments[1])));
+            return ;
+        }
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (tolower(it->getchannelName()) == tolower(trim(arguments[1]))) {  
@@ -31,6 +34,10 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
         }        
     }
     else if (arguments.size() == 4 && trim(arguments[2])[0] == '-') {
+        if (!ch->isOp(client.getNickName())) {
+            client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), trim(arguments[1])));
+            return ;
+        }
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (tolower(trim(arguments[2])[1]) == 'o'){
@@ -50,6 +57,10 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
         }
     }
     else if (arguments.size() >= 3 && trim(arguments[2])[0] == '+') {
+        if (!ch->isOp(client.getNickName())) {
+            client.ServerToClientPrefix(ERR_CHANOPRIVSNEEDED(client.getNickName(), trim(arguments[1])));
+            return ;
+        }
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (tolower(it->getchannelName()) == tolower(trim(arguments[1]))) {
@@ -116,6 +127,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
                         }
                     }
                 }
+                else return ;
                 if (arguments.size() == 3)
                     sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2]));
                 else

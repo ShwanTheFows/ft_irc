@@ -9,7 +9,6 @@
 #include <cctype>
 #include <algorithm>
 
-void handleReceivedMessage(const char* message, int length);
 void fillVectorFromEnd(std::vector<std::string>& vec, int endIndex);
 std::vector<std::string> splitStringByComma(const std::string& input);
 std::string passLimit(std::string input);
@@ -27,6 +26,5 @@ std::string getHostIpAddress(void);
 bool isValidNickname(const std::string& nickname);
 bool isValidUsername(const std::string& username);
 bool isValidChannelName(const std::string& channelName);
-bool findCommand(const std::vector<std::string>& commands, const std::string& targetCommand);
 
 #endif

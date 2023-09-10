@@ -20,7 +20,6 @@ Server& Server::operator=(const Server& right) {
     this->port = right.port;
     this->password = right.password;
     this->channels = right.channels;
-    this->timeOfCreation = right.timeOfCreation;
     this->cmdMap = right.cmdMap;
 
     clients.clear();
@@ -58,9 +57,6 @@ void Server::cmdMapinit(void) {
 }
 
 void Server::run() {
-    time_t now = time(0);
-    timeOfCreation = asctime(gmtime(&now));
-    timeOfCreation.erase(std::remove(timeOfCreation.begin(), timeOfCreation.end(), '\n'), timeOfCreation.end());
     setUpSocket();
     bind();
     listen();
@@ -115,7 +111,7 @@ void Server::setUpSocket() {
     }
     if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR,  &val, sizeof(val)) < 0)
 		throw std::runtime_error("Error while setting socket options");
-	if (fcntl(this->serverSocket, F_SETFL, fcntl(this->serverSocket, F_GETFL, 0) | O_NONBLOCK) < 0)
+	if (fcntl(this->serverSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw std::runtime_error("Error while setting server's file socket to non-blocking");
     std::cout << "The server socket has been set up successfully!" << std::endl;
 }
@@ -144,9 +140,8 @@ void Server::handleClient(int clientSocket) {
     int buffsize = 512;
     char buffer[buffsize];
 
-    memset(buffer, 0, buffsize);  // Clear the buffer
+    memset(buffer, 0, buffsize);
 
-    // Receive message from the client
     int bytesRead = recv(clientSocket, buffer, buffsize, 0);
 
     if (bytesRead > 0) {
@@ -266,7 +261,7 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
             client.setNickName(trim(arguments[1]));
             if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty() && !client.isRegistered) {
                 client.isRegistered = true;
-                client.welcome(timeOfCreation);
+                client.welcome();
             }
         }
     }
@@ -286,7 +281,7 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
                 client.setRealName(trim(arguments[4]));
             if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
                 client.isRegistered = true;
-                client.welcome(timeOfCreation);
+                client.welcome();
             }
         }
     }

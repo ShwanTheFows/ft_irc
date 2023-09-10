@@ -18,7 +18,6 @@ class Server {
         void disconnect(void);
     public:
         std::vector<Channel> channels;
-        std::string timeOfCreation;
         typedef void (Server::*cmd)(Client& client, std::vector<std::string>& arguments);
         std::map<std::string, cmd> cmdMap;
 
