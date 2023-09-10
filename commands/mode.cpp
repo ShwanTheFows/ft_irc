@@ -82,5 +82,5 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
                     client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
             }
         }
-    } else client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+    }
 }

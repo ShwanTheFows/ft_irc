@@ -59,7 +59,6 @@ void Server::cmdMapinit(void) {
 
 void Server::run() {
     time_t now = time(0);
-    //tm *gmtm = gmtime(&now);
     timeOfCreation = asctime(gmtime(&now));
     timeOfCreation.erase(std::remove(timeOfCreation.begin(), timeOfCreation.end(), '\n'), timeOfCreation.end());
     setUpSocket();
