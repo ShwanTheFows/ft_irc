@@ -10,16 +10,23 @@ void Server::notice(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() > 2 && trim(arguments[2])[0] == ':' && trim(arguments[2]).length() == 1) client.ServerToClientPrefix(ERR_NOTEXTTOSEND(client.getNickName()));
     else if (trim(arguments[1])[0] != '#') {
         for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-            if (it->second.getNickName() == trim(arguments[1])) {
-                Client clientCopy = it->second;
-                sendMessageToClient(client,  "NOTICE " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), clientCopy.getClientSocket());
-                return ;
+            if (tolower(it->second.getNickName()) == tolower(trim(arguments[1]))) {
+                if (trim(arguments[2])[0] == ':')
+                    sendMessageToClient(client, "NOTICE " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), it->second.getClientSocket());
+                else
+                    sendMessageToClient(client, "NOTICE " + it->second.getNickName() + " :" + trim(arguments[2]), it->second.getClientSocket());
+                break ;
             }
         }
         client.ServerToClientPrefix(ERR_NOSUCHNICK(trim(arguments[1])));
     } else if (trim(arguments[1])[0] == '#') {
         if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
         else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", trim(arguments[1])));
-        else sendToChannelMembersExceptClient(ch, client, "NOTICE " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
+        else {
+            if (trim(arguments[2])[0] == ':')
+                sendToChannelMembersExceptClient(ch, client, "NOTICE " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
+            else
+                sendToChannelMembersExceptClient(ch, client, "NOTICE " + ch->getchannelName() + " :" + trim(arguments[2]));
+        }
     }
 }

@@ -3,7 +3,12 @@
 void Server::quit(Client& client, std::vector<std::string>& arguments) {
     std::string goodByeMessage;
 
-    if (arguments.size() > 1) goodByeMessage = ":" + joinVectorFromIndex(arguments, 1);
+    if (arguments.size() > 1) {
+        if (trim(arguments[1])[0] == ':')
+            goodByeMessage = ":" + joinVectorFromIndex(arguments, 1);
+        else
+            goodByeMessage = ":" + trim(arguments[1]);
+    }
     else goodByeMessage = client.getNickName();
 
     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++) {

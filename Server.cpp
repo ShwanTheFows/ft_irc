@@ -245,7 +245,7 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
         if (!isValidNickname(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {
             for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
-                if (it->second.getNickName() == trim(arguments[1])) {
+                if (tolower(it->second.getNickName()) == tolower(trim(arguments[1]))) {
                     client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
                     return ;
                 }
@@ -267,11 +267,14 @@ void Server::checkUserCommand(Client& client, std::vector<std::string>& argument
     if (arguments.size() < 5) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getUserName().empty()) {
-        client.setUserName(trim(arguments[1]));
-        client.setRealName(joinVectorFromIndex(arguments, 4));
-        if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
-            client.isRegistered = true;
-            client.welcome(timeOfCreation);
+        if (!isValidUsername(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
+        else {
+            client.setUserName(trim(arguments[1]));
+            client.setRealName(joinVectorFromIndex(arguments, 4));
+            if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
+                client.isRegistered = true;
+                client.welcome(timeOfCreation);
+            }
         }
     }
 }
@@ -315,7 +318,7 @@ void Server::sendToChannelMembersExceptClient(Channel* channel, Client& client, 
 bool Server::doesChannelExist(std::string name) {
     if (channels.size() == 0) return false;
     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
-        if (it->getchannelName() == name) {
+        if (tolower(it->getchannelName()) == tolower(name)) {
             return true;
         }
     }
@@ -325,7 +328,7 @@ bool Server::doesChannelExist(std::string name) {
 bool Server::doesClientExistInChannel(Channel& ch, std::string clientName) {
     if (ch.isempty) return false;
     for (std::vector<Client *>::iterator it = ch.clients.begin(); it != ch.clients.end(); ++it) {
-        if ((**it).getNickName() == clientName)
+        if (tolower((**it).getNickName()) == tolower(clientName))
             return true;
     }
     return false;
@@ -333,7 +336,7 @@ bool Server::doesClientExistInChannel(Channel& ch, std::string clientName) {
 
 Channel* Server::getChannel(std::string channelName) {
     for (std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++) {
-        if (channelName == it->getchannelName())
+        if (tolower(channelName) == tolower(it->getchannelName()))
             return &(*it);
     }
     return NULL;
@@ -341,7 +344,7 @@ Channel* Server::getChannel(std::string channelName) {
 
 Client* Server::getClient(std::string clientName) {
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
-        if (clientName == it->second.getNickName())
+        if (tolower(clientName) == tolower(it->second.getNickName()))
             return &(it->second);
     }
     return NULL;
@@ -349,6 +352,6 @@ Client* Server::getClient(std::string clientName) {
 
 bool Server::clientExists(std::string clientName) {
     for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it)
-        if (it->second.getNickName() == clientName) return true;
+        if (tolower(it->second.getNickName()) == tolower(clientName)) return true;
     return false;
 }

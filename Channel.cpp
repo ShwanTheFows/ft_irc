@@ -60,13 +60,13 @@ std::string Channel::getchannelName(void)
 
 bool Channel::addMember(Client& member)
 {
-    if (this->Ulimit && (int)clients.size() >= this->userLimit) {
+    if (this->Ulimit && (int)clients.size() >= this->userLimit && !isInInviteList(member.getNickName())) {
         member.ServerToClientPrefix(ERR_CHANNELISFULL(member.getNickName(), getchannelName()));
         return false;
     }
     std::vector<Client *>::iterator c_it;
     for (c_it = clients.begin(); c_it != clients.end(); ++c_it) {
-        if ((*c_it)->getNickName() == member.getNickName()) {
+        if (tolower((*c_it)->getNickName()) == tolower(member.getNickName())) {
             member.ServerToClientPrefix(ERR_USERONCHANNEL(member.getNickName(), getchannelName()));
             return false;
         }
@@ -122,7 +122,7 @@ std::string Channel::getClientNames(void) {
 
 void Channel::removeMember(std::string clientName) {
     for (std::vector<Client *>::iterator myit = this->clients.begin(); myit != this->clients.end(); ++myit) {
-        if ((**myit).getNickName() == clientName) {
+        if (tolower((**myit).getNickName()) == tolower(clientName)) {
             if (this->isOp((**myit).getNickName()))
                 removeOp((**myit).getNickName());
             if (this->isInInviteList((**myit).getNickName()))
@@ -158,7 +158,7 @@ void Channel::removeOp(std::string name)
     if (operators.size() == 0) return ;
     std::vector<std::string>::iterator it = operators.begin();
     for(;it != operators.end();it++) {
-        if (name == *it) {
+        if (tolower(name) == tolower(*it)) {
             operators.erase(it);
             return ;
         }
@@ -174,7 +174,7 @@ bool Channel::isOp(std::string name){
     if (operators.size() == 0) return false;
     std::vector<std::string>::iterator it = operators.begin();
     for(;it != operators.end();it++)
-        if (name == *it)
+        if (tolower(name) == tolower(*it))
             return true;
     if(it == operators.end())
         return false;
@@ -191,7 +191,7 @@ void Channel::addToInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) this->inviteList.push_back(clientName);
     else {
         for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
-            if (*it == clientName) return ;
+            if (tolower(*it) == tolower(clientName)) return ;
         }
         this->inviteList.push_back(clientName);
     }
@@ -200,7 +200,7 @@ void Channel::addToInviteList(std::string clientName) {
 void Channel::removeFromInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) return ;
     for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
-        if (*it == clientName) {
+        if (tolower(*it) == tolower(clientName)) {
             this->inviteList.erase(it);
             return ;
         }
@@ -210,7 +210,7 @@ void Channel::removeFromInviteList(std::string clientName) {
 bool Channel::isInInviteList(std::string clientName) {
     if (this->inviteList.size() == 0) return false;
     for (std::vector<std::string>::iterator it = this->inviteList.begin(); it != this->inviteList.end(); it++) {
-        if (*it == clientName) return true;
+        if (tolower(*it) == tolower(clientName)) return true;
     }
     return false;
 }
@@ -218,12 +218,12 @@ bool Channel::isInInviteList(std::string clientName) {
 void Channel::changeNickname(std::string oldNick, std::string newNick) {
     if (isInInviteList(oldNick)) {
         for (std::vector<std::string>::size_type i = 0; i < this->inviteList.size(); i++)
-            if (this->inviteList[i] == oldNick)
+            if (tolower(this->inviteList[i]) == tolower(oldNick))
                 this->inviteList[i] = newNick;
     }
     if (isOp(oldNick)) {
         for (std::vector<std::string>::size_type i = 0; i < this->operators.size(); i++)
-            if (this->operators[i] == oldNick)
+            if (tolower(this->operators[i]) == tolower(oldNick))
                 this->operators[i] = newNick;
     }
 }

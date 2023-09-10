@@ -13,7 +13,7 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() == 3 && trim(arguments[2])[0] == '-') {
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
-            if (it->getchannelName() == trim(arguments[1])) {  
+            if (tolower(it->getchannelName()) == tolower(trim(arguments[1]))) {  
                 if (tolower(trim(arguments[2])[1]) == 'i')
                     it->setPrivate(false);
                 else if (tolower(trim(arguments[2])[1]) == 't')
@@ -22,8 +22,11 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
                     it->haveKey(false);
                 else if (tolower(trim(arguments[2])[1]) == 'l')
                     it->haveLimit(false);
-                else if (tolower(trim(arguments[2])[1]) == 'o')
+                else if (tolower(trim(arguments[2])[1]) == 'o') {
                     client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+                    return ;
+                }
+                sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2]));
             }
         }        
     }
@@ -31,15 +34,17 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
             if (tolower(trim(arguments[2])[1]) == 'o'){
-                if (it->getchannelName() == trim(arguments[1])) { 
+                if (tolower(it->getchannelName()) == tolower(trim(arguments[1]))) { 
                     std::vector<Client *>::iterator myit = it->clients.begin();
                     for (; myit != it->clients.end(); ++myit) {   
-                        if ((*myit)->getNickName() == trim(arguments[3])) {
+                        if (tolower((*myit)->getNickName()) == tolower(trim(arguments[3]))) {
                             it->removeOp((*myit)->getNickName());
+                            sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2]) + " " + trim(arguments[3]));
                             return ;
                         }
                     }
                     client.ServerToClientPrefix(ERR_NOTONCHANNEL(trim(arguments[3]), it->getchannelName()));
+                    return ;
                 }
             }
         }
@@ -47,40 +52,70 @@ void Server::mode(Client& client, std::vector<std::string>& arguments) {
     else if (arguments.size() >= 3 && trim(arguments[2])[0] == '+') {
         std::vector<Channel>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it) {
-            if (it->getchannelName() == trim(arguments[1])) {
-                if (tolower(trim(arguments[2])[1]) == 'i')
+            if (tolower(it->getchannelName()) == tolower(trim(arguments[1]))) {
+                if (tolower(trim(arguments[2])[1]) == 'i') {
+                    if (arguments.size() > 3) {
+                        client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        return ;
+                    }
                     it->setPrivate(true);
+                }
                 else if (tolower(trim(arguments[2])[1]) == 't') {
+                    if (arguments.size() > 3) {
+                        client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        return ;
+                    }
                     it->boolTopic(true);
                 }
                 else if (tolower(trim(arguments[2])[1]) == 'k') {
-                    if (arguments.size() == 3 || trim(arguments[3]).empty()) client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                    if (arguments.size() == 3 || trim(arguments[3]).empty()) {
+                        client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        return ;
+                    }
                     else {
                         it->haveKey(true);
                         it->setKey(trim(arguments[3]));
                     }
                 }
                 else if (tolower(trim(arguments[2])[1]) == 'o') {
-                    std::vector<Client *>::iterator myit = it->clients.begin();
-                    for (; myit != it->clients.end(); ++myit) {
-                        if ((*myit)->getNickName() == trim(arguments[3])) {
-                            it->setOperators((*myit)->getNickName());
-                            return ;
-                        }
+                    if (arguments.size() == 3 || trim(arguments[3]).empty()) {
+                        client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        return ;
                     }
-                    client.ServerToClientPrefix(ERR_NOTONCHANNEL(trim(arguments[3]), it->getchannelName()));
+                    else {
+                        std::vector<Client *>::iterator myit = it->clients.begin();
+                        for (; myit != it->clients.end(); ++myit) {
+                            if (tolower((*myit)->getNickName()) == tolower(trim(arguments[3]))) {
+                                it->setOperators((*myit)->getNickName());
+                                sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2] + " " + trim(arguments[3])));
+                                return ;
+                            }
+                        }
+                        client.ServerToClientPrefix(ERR_NOTONCHANNEL(trim(arguments[3]), it->getchannelName()));
+                        return ;
+                    }
                 }
                 else if (tolower(trim(arguments[2])[1]) == 'l') {
-                    if (arguments.size() == 3 || trim(arguments[3]).empty()) client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                    if (arguments.size() == 3 || trim(arguments[3]).empty()) {
+                        client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        return ;
+                    }
                     else {
                         int limit = std::atoi(trim(arguments[3]).c_str());
-                        if (limit < 0) client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                        if (limit < 0) {
+                            client.ServerToClientPrefix(ERR_UNKNOWNMODE(client.getNickName(), joinVectorFromIndex(arguments, 2)));
+                            return ;
+                        }
                         else {
                             it->haveLimit(true);
                             it->setLimit(limit);
                         }
                     }
                 }
+                if (arguments.size() == 3)
+                    sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2]));
+                else
+                    sendToChannelMembers(&(*it), client, " MODE " + it->getchannelName() + " " + trim(arguments[2]) + " " + trim(arguments[3]));
             }
         }
     }

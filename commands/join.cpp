@@ -43,28 +43,10 @@ void Server::join(Client& client, std::vector<std::string>& arguments) {
                 }
                 else if (ch->getPrivate() == true) {
                     if (ch->isInInviteList(client.getNickName())) {
-                        if (ch->sethaveKey() && arguments.size() == 3) {
-                            if(arguments.size() == 3 && ch->getKey() == keys[i]) {
-                                if (!ch->addMember(client)) continue;
-                                sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
-                                printJoinInfo(client, *ch, ch->getClientNames());
-                                continue;
-                            }
-                            else {
-                                client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
-                                continue;
-                            }
-                        }
-                        else if (ch->sethaveKey() && arguments.size() == 2) {
-                            client.ServerToClientPrefix(ERR_BADCHANNELKEY(client.getNickName(), ch->getchannelName()));
-                            continue;
-                        }
-                        else {
-                            if (!ch->addMember(client)) continue;
-                            sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
-                            printJoinInfo(client, *ch, ch->getClientNames());
-                            continue;
-                        }
+                        if (!ch->addMember(client)) continue;
+                        sendToChannelMembers(&(*ch), client, "JOIN :" + ch->getchannelName());
+                        printJoinInfo(client, *ch, ch->getClientNames());
+                        continue;
                     } else {
                         client.ServerToClientPrefix(ERR_INVITEONLYCHAN(client.getNickName(), ch->getchannelName()));
                         continue;

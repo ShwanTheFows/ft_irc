@@ -14,8 +14,11 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
                     continue;
                 }
                 for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-                    if (it->second.getNickName() == *element) {
-                        sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), it->second.getClientSocket());
+                    if (tolower(it->second.getNickName()) == tolower(*element)) {
+                        if (trim(arguments[2])[0] == ':')
+                            sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + joinVectorFromIndex(arguments, 2), it->second.getClientSocket());
+                        else
+                            sendMessageToClient(client, "PRIVMSG " + it->second.getNickName() + " :" + trim(arguments[2]), it->second.getClientSocket());
                         break ;
                     }
                 }
@@ -23,8 +26,12 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
                 ch = getChannel(*element);
                 if (!doesChannelExist(*element)) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), *element));
                 else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", *element));
-                else 
-                    sendToChannelMembersExceptClient(ch, client, "PRIVMSG " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
+                else {
+                    if (trim(arguments[2])[0] == ':')
+                        sendToChannelMembersExceptClient(ch, client, "PRIVMSG " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
+                    else
+                        sendToChannelMembersExceptClient(ch, client, "PRIVMSG " + ch->getchannelName() + " :" + trim(arguments[2]));
+                }
             }
         }
     }
