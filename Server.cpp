@@ -244,7 +244,6 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
 void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() != 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (trim(arguments[1]).empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
-    //else if (client.getNickName() == trim(arguments[1])) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
     else {
         if (!isValidNickname(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {

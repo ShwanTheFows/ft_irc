@@ -20,7 +20,7 @@ void Server::quit(Client& client, std::vector<std::string>& arguments) {
 
     client.mySend("ERROR :Closing Link: " + client.getServerHostName() + " (Quit: " + goodByeMessage + ")");
     std::cout << client.getNickName() << " left the server." << std::endl;
-    // removing the client from the client array
+
     close(client.getClientSocket());
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); it++) {
         if (client.getClientSocket() == it->first) {
