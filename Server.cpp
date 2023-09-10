@@ -169,6 +169,9 @@ void Server::handleClient(int clientSocket) {
             for (std::vector<Channel>::iterator ch_it = channels.begin(); ch_it != channels.end(); ch_it++) {
                 if (doesClientExistInChannel(*ch_it, it->second.getNickName())) {
                     ch_it->removeMember(it->second.getNickName());
+                    if (ch_it->clients.size() == 0) {
+                        removeChannel(ch_it->getchannelName());
+                    }
                     break;
                 }
             }
@@ -265,12 +268,16 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
 
 void Server::checkUserCommand(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 5) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (trim(arguments[1])[0] == ':' || trim(arguments[2])[0] == ':' || trim(arguments[3])[0] == ':') client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getUserName().empty()) {
         if (!isValidUsername(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {
             client.setUserName(trim(arguments[1]));
-            client.setRealName(joinVectorFromIndex(arguments, 4));
+            if (trim(arguments[4])[0] == ':')
+                client.setRealName(joinVectorFromIndex(arguments, 4));
+            else
+                client.setRealName(trim(arguments[4]));
             if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
                 client.isRegistered = true;
                 client.welcome(timeOfCreation);

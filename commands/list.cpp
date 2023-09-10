@@ -13,7 +13,7 @@ void Server::list(Client& client, std::vector<std::string>& arguments) {
         client.ServerToClientPrefix(RPL_LISTSTART(client.getNickName()));
         std::vector<std::string> chnls = splitStringByComma(joinVectorFromIndex2(arguments, 1));
         for (size_t i = 0; i < chnls.size(); i++) {
-            if (!doesChannelExist(chnls[i])) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), chnls[i]));
+            if (!doesChannelExist(chnls[i])) continue ;
             Channel* ch = getChannel(chnls[i]);
             client.ServerToClientPrefix(RPL_LIST(client.getNickName(), ch->getchannelName(), ch->getClientsSize(), ch->getTopic()));
         }
