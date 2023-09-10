@@ -20,6 +20,6 @@ void Server::notice(Client& client, std::vector<std::string>& arguments) {
     } else if (trim(arguments[1])[0] == '#') {
         if (!doesChannelExist(trim(arguments[1]))) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), trim(arguments[1])));
         else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", trim(arguments[1])));
-        else sendToChannelMembers(ch, client, "NOTICE " + client.getNickName() + " :" + joinVectorFromIndex(arguments, 2));
+        else sendToChannelMembersExceptClient(ch, client, "NOTICE " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
     }
 }

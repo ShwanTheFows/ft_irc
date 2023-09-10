@@ -76,7 +76,7 @@ void Client::ClientToClientPrefix(std::string str) {
 }
 
 void Client::ServerToClientPrefix(std::string str) {
-    mySend(":" + getHostName() + " " + str);
+    mySend(":" + getServerHostName() + " " + str);
 }
 
 void Client::mySend(std::string str) {

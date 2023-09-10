@@ -153,10 +153,13 @@ void Server::handleClient(int clientSocket) {
         if (bytesRead >= buffsize) {
             buffer[buffsize] = '\0';
         }
-        removeTrailingNewline(buffer);
-        if (!this->checkLoginCommands(clients[clientSocket], buffer)) {
-            if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], buffer))
-                clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), buffer));
+        std::vector<std::string> args = splitStringByNewline(buffer);
+        for (size_t i = 0; i < args.size(); i++) {
+            removeTrailingNewline(args[i]);
+            if (!this->checkLoginCommands(clients[clientSocket], args[i])) {
+                if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], args[i]))
+                    clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), args[i]));
+            }
         }
     } else if (bytesRead == 0) {
         std::map<int, Client>::iterator it = this->clients.find(clientSocket);
@@ -223,7 +226,7 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
         client.logged = true;
         return ;
     }
-    else if (arguments.size() > 2 || arguments.size() == 1) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
+    else if (arguments.size() < 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
     else if (client.getPassWord().empty() && this->password.length() != 0) {
         if (trim(arguments[1]) != this->password) client.ServerToClientPrefix(ERR_PASSWDMISMATCH(client.getNickName()));
@@ -235,16 +238,15 @@ void Server::checkPassword(Client& client, std::vector<std::string>& arguments) 
 }
 
 void Server::checkNickName(Client& client, std::vector<std::string>& arguments) {
-    if (arguments.size() > 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
-    //else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
+    if (arguments.size() != 2) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (trim(arguments[1]).empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
-    else if (client.getNickName() == trim(arguments[1])) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
+    //else if (client.getNickName() == trim(arguments[1])) client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
     else {
         if (!isValidNickname(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
         else {
             for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++) {
                 if (it->second.getNickName() == trim(arguments[1])) {
-                    client.ServerToClientPrefix(ERR_NICKCOLLISION(client.getNickName()));
+                    client.ServerToClientPrefix(ERR_NICKNAMEINUSE(client.getNickName()));
                     return ;
                 }
             }
@@ -264,10 +266,8 @@ void Server::checkNickName(Client& client, std::vector<std::string>& arguments) 
 void Server::checkUserCommand(Client& client, std::vector<std::string>& arguments) {
     if (arguments.size() < 5) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (client.isRegistered) client.ServerToClientPrefix(ERR_ALREADYREGISTRED(client.getNickName()));
-    else if (arguments[1].empty()) client.ServerToClientPrefix(ERR_NONICKNAMEGIVEN(client.getNickName()));
     else if (client.getUserName().empty()) {
-        if (!isValidUsername(trim(arguments[1]))) client.ServerToClientPrefix(ERR_ERRONEUSNICKNAME(client.getNickName()));
-        else client.setUserName(trim(arguments[1]));
+        client.setUserName(trim(arguments[1]));
         client.setRealName(joinVectorFromIndex(arguments, 4));
         if ((!client.getPassWord().empty() || this->password.empty()) && !client.getNickName().empty() && !client.getUserName().empty()) {
             client.isRegistered = true;
@@ -290,12 +290,24 @@ void Server::sendMessageToClient(Client& sender, const std::string& message, int
     msg.clear();
 }
 
-void Server::sendToChannelMembers(Channel* Channel, Client& client, std::string msg) {
+void Server::sendToChannelMembers(Channel* channel, Client& client, std::string msg) {
     size_t i = 0;
     std::string message = ":" + client.getPrefixClient() + msg + "\r\n";
-    while (i < Channel->clients.size()) {
-        if (send(Channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0) < 0)
+    while (i < channel->clients.size()) {
+        if (send(channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0) < 0)
             throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
+        i++;
+    }
+}
+
+void Server::sendToChannelMembersExceptClient(Channel* channel, Client& client, std::string msg) {
+    size_t i = 0;
+    std::string message = ":" + client.getPrefixClient() + msg + "\r\n";
+    while (i < channel->clients.size()) {
+        if (client.getClientSocket() != channel->clients[i]->getClientSocket()) {
+            if (send(channel->clients[i]->getClientSocket(), message.c_str(), message.length(), 0) < 0)
+                throw std::runtime_error("An error occurred while attempting to send a message to the client.\n");
+        }
         i++;
     }
 }

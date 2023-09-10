@@ -40,6 +40,18 @@ std::vector<std::string> splitStringByComma(const std::string& input) {
     return result;
 }
 
+std::vector<std::string> splitStringByNewline(const std::string& input) {
+    std::vector<std::string> result;
+    std::istringstream iss(input);
+    std::string line;
+
+    while (std::getline(iss, line)) {
+        result.push_back(line);
+    }
+
+    return result;
+}
+
 std::vector<std::string> splitString(const std::string& str) {
     size_t i  = 0;
     std::string element = "";
@@ -156,6 +168,17 @@ void removeTrailingNewline(char* str) {
     while (length > 0 && (str[length - 1] == '\r' || str[length - 1] == '\n')) {
         str[length - 1] = '\0';
         length--;
+    }
+}
+
+void removeTrailingNewline(std::string& str) {
+    if (str.empty())
+        return;
+
+    size_t length = str.length();
+    while (length > 0 && (str[length - 1] == '\r' || str[length - 1] == '\n')) {
+        str.erase(length - 1);
+        length = str.length();
     }
 }
 

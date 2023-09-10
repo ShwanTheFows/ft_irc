@@ -53,6 +53,7 @@ class Server {
         bool checkCommands(Client& client, std::string buffer);
         void sendMessageToClient(Client& sender, const std::string& message, int receiver);
         void sendToChannelMembers(Channel* Channel, Client& client, std::string msg);
+        void sendToChannelMembersExceptClient(Channel* channel, Client& client, std::string msg);
         bool doesChannelExist(std::string name);
         bool doesClientExistInChannel(Channel& ch, std::string clientName);
         Channel* getChannel(std::string channelName);

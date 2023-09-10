@@ -24,7 +24,7 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
                 if (!doesChannelExist(*element)) client.ServerToClientPrefix(ERR_NOSUCHCHANNEL(client.getNickName(), *element));
                 else if (!doesClientExistInChannel(*ch, client.getNickName())) client.ServerToClientPrefix(ERR_USERNOTINCHANNEL(client.getNickName(), "", *element));
                 else 
-                    sendToChannelMembers(ch, client, "PRIVMSG " + client.getNickName() + " :" + joinVectorFromIndex(arguments, 2));
+                    sendToChannelMembersExceptClient(ch, client, "PRIVMSG " + ch->getchannelName() + " :" + joinVectorFromIndex(arguments, 2));
             }
         }
     }
