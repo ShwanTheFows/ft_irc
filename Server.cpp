@@ -355,3 +355,13 @@ bool Server::clientExists(std::string clientName) {
         if (tolower(it->second.getNickName()) == tolower(clientName)) return true;
     return false;
 }
+
+void Server::removeChannel(std::string channelName) {
+    if (channels.size() == 0) return ;
+    for (std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++) {
+        if (tolower(channelName) == tolower(it->getchannelName())) {
+            channels.erase(it);
+            return ;
+        }
+    }
+}

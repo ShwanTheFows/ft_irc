@@ -13,6 +13,9 @@ void Server::part(Client& client, std::vector<std::string>& arguments) {
                 else {
                     sendToChannelMembers(ch, client, "PART " + ch->getchannelName());
                     ch->removeMember(client.getNickName());
+                    if (ch->clients.size() == 0) {
+                        removeChannel(*element);
+                    }
                 }
         }
     }
