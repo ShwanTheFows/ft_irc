@@ -73,6 +73,7 @@ class Server {
         void invite(Client& client, std::vector<std::string>& arguments);
         void mode(Client& client, std::vector<std::string>& arguments);
         void whois(Client& client, std::vector<std::string>& arguments);
+        void pong(Client& client, std::vector<std::string>& arguments);
 };
 
 #endif

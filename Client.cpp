@@ -1,8 +1,8 @@
 #include "Client.hpp"
 
-Client::Client(){}
+Client::Client() {}
 
-Client::Client(int fd) : clientSocket(fd), logged(false), isRegistered(false)  {
+Client::Client(int fd) : _buffer(""), clientSocket(fd), logged(false), isRegistered(false){
     this->setHostName(getHostIpAddress());
 }
 

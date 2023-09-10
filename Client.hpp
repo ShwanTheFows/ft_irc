@@ -32,6 +32,7 @@ class Client {
         std::string password;
         std::string serverHostName;
     public:
+        std::string _buffer;
         std::time_t timeJoined;
         int clientSocket;
         bool logged;

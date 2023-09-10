@@ -46,11 +46,11 @@ std::string Server::getIp(void) const {return this->ip;}
 
 void Server::cmdMapinit(void) {
     std::string cmd_strings[] = {"join", "kick", "part", "notice", "privmsg", "quit"
-    , "topic", "names", "list", "invite", "mode", "whois"};
+    , "topic", "names", "list", "invite", "mode", "whois", "pong"};
     cmd cmd_ptrs[] = {&Server::join, &Server::kick, 
     &Server::part, &Server::notice, &Server::privmsg, 
     &Server::quit, &Server::topic, &Server::names, 
-    &Server::list, &Server::invite, &Server::mode, &Server::whois};
+    &Server::list, &Server::invite, &Server::mode, &Server::whois, &Server::pong};
     int num_cmds = sizeof(cmd_ptrs) / sizeof(cmd);
 
     for (int i = 0; i < num_cmds; i++)
@@ -107,13 +107,13 @@ void Server::run() {
 }
 
 void Server::setUpSocket() {
-    int	optval = 1;
+    int	val = 1;
     this->serverSocket = -1;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->serverSocket < 0) {
         throw std::runtime_error("Server socket setup failed.");
     }
-    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR,  (char *) &optval, sizeof(optval)) < 0)
+    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR,  &val, sizeof(val)) < 0)
 		throw std::runtime_error("Error while setting socket options");
 	if (fcntl(this->serverSocket, F_SETFL, fcntl(this->serverSocket, F_GETFL, 0) | O_NONBLOCK) < 0)
 		throw std::runtime_error("Error while setting server's file socket to non-blocking");
@@ -153,13 +153,19 @@ void Server::handleClient(int clientSocket) {
         if (bytesRead >= buffsize) {
             buffer[buffsize] = '\0';
         }
-        std::vector<std::string> args = splitStringByNewline(buffer);
-        for (size_t i = 0; i < args.size(); i++) {
-            removeTrailingNewline(args[i]);
-            if (!this->checkLoginCommands(clients[clientSocket], args[i])) {
-                if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], args[i]))
-                    clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), args[i]));
+        if (buffer[strlen(buffer) - 1] != '\n' && buffer[strlen(buffer) - 1] != '\r') {
+            clients[clientSocket]._buffer += buffer;
+        } else {
+            clients[clientSocket]._buffer += buffer;
+            std::vector<std::string> args = splitStringByNewline(clients[clientSocket]._buffer);
+            for (size_t i = 0; i < args.size(); i++) {
+                removeTrailingNewline(args[i]);
+                if (!this->checkLoginCommands(clients[clientSocket], args[i])) {
+                    if (this->clients[clientSocket].isRegistered && !this->checkCommands(clients[clientSocket], args[i]))
+                        clients[clientSocket].ServerToClientPrefix(ERR_UNKNOWNCOMMAND(clients[clientSocket].getNickName(), args[i]));
+                }
             }
+            clients[clientSocket]._buffer = "";
         }
     } else if (bytesRead == 0) {
         std::map<int, Client>::iterator it = this->clients.find(clientSocket);
@@ -372,3 +378,5 @@ void Server::removeChannel(std::string channelName) {
         }
     }
 }
+
+void Server::pong(Client& client, std::vector<std::string>& arguments) {(void)client; (void)arguments;}
