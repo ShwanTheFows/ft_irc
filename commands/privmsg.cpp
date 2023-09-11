@@ -4,7 +4,7 @@ void Server::privmsg(Client& client, std::vector<std::string>& arguments) {
     Channel* ch;
     if (arguments.size() < 3) client.ServerToClientPrefix(ERR_NEEDMOREPARAMS(client.getNickName()));
     else if (arguments.size() >= 2 && trim(arguments[1])[0] == ':') client.ServerToClientPrefix(ERR_NORECIPIENT(client.getNickName(), joinVectorFromIndex(arguments, 0)));
-    else if (arguments.size() > 2 && trim(arguments[2])[0] == ':' && trim(arguments[2]).length() == 1) client.ServerToClientPrefix(ERR_NOTEXTTOSEND(client.getNickName()));
+    else if ((arguments.size() > 2 && trim(arguments[2])[0] == ':' && trim(joinVectorFromIndex(arguments, 2)).length() <= 1) || (trim(joinVectorFromIndex(arguments, 2)).length() == 0)) client.ServerToClientPrefix(ERR_NOTEXTTOSEND(client.getNickName()));
     else {
         std::vector<std::string> receivers = splitStringByComma(trim(arguments[1]));
         for (std::vector<std::string>::iterator element = receivers.begin(); element != receivers.end(); element++) {
